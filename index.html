@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XI Campori APSo – O Desejado</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --crimson:#8B0000;--crimson-bright:#CC1111;--crimson-deep:#5A0000;
+  --gold:#D4A017;--gold-light:#F0C040;--gold-pale:#FFF3CC;
+  --dark:#0A0505;--dark2:#110808;--dark3:#1A0C0C;
+  --text-light:#F5EDD8;--text-muted:#C9A87A;
+}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--text-light);font-family:'Crimson Pro',serif;overflow-x:hidden}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:0.1s}.reveal-delay-2{transition-delay:0.2s}.reveal-delay-3{transition-delay:0.3s}.reveal-delay-4{transition-delay:0.4s}
+nav{position:fixed;top:0;left:0;right:0;z-index:999;background:rgba(10,5,5,0.93);backdrop-filter:blur(8px);border-bottom:1px solid rgba(212,160,23,0.25);padding:0 1.5rem}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{font-family:'Cinzel Decorative',serif;font-size:13px;color:var(--gold);letter-spacing:2px;text-decoration:none}
+.nav-links{display:flex;gap:1rem;list-style:none;flex-wrap:wrap}
+.nav-links a{color:var(--text-muted);text-decoration:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;transition:color 0.2s}
+.nav-links a:hover{color:var(--gold-light)}
+.nav-toggle{display:none;background:none;border:none;cursor:pointer;color:var(--gold);font-size:1.4rem}
+#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 2rem 4rem;position:relative;overflow:hidden}
+#particles-canvas{position:fixed;inset:0;pointer-events:none;z-index:0}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(139,0,0,0.35) 0%,rgba(10,5,5,0) 70%);z-index:1}
+.hero-content{position:relative;z-index:2}
+.crown-svg{width:90px;height:70px;filter:drop-shadow(0 0 16px rgba(212,160,23,0.7));animation:crownFloat 3s ease-in-out infinite}
+@keyframes crownFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero-eyebrow{font-family:'Cinzel',serif;font-size:12px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin:1rem 0 0.75rem;opacity:0.85}
+.hero-title-small{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,4vw,2.2rem);color:var(--text-light);letter-spacing:4px;margin-bottom:0.3rem}
+.hero-title{font-family:'Cinzel Decorative',serif;font-size:clamp(3rem,10vw,7rem);background:linear-gradient(135deg,#CC1111 0%,#F0C040 40%,#D4A017 60%,#CC1111 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:1rem}
+.hero-divider{display:flex;align-items:center;gap:1rem;justify-content:center;margin:1rem 0}
+.hero-divider-line{flex:1;max-width:100px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.hero-divider-diamond{width:8px;height:8px;background:var(--gold);transform:rotate(45deg)}
+.hero-subtitle{font-family:'Cinzel',serif;font-size:clamp(0.9rem,2vw,1.1rem);color:var(--text-muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:2rem}
+.hero-badges{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem}
+.badge{background:rgba(139,0,0,0.2);border:1px solid rgba(212,160,23,0.4);padding:0.5rem 1.25rem;font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--gold-pale);text-transform:uppercase;border-radius:2px}
+.hero-cta{display:inline-block;background:linear-gradient(135deg,var(--crimson),var(--crimson-bright));color:var(--gold-pale);font-family:'Cinzel',serif;font-size:12px;letter-spacing:3px;text-transform:uppercase;padding:0.9rem 2.5rem;border:1px solid var(--gold);text-decoration:none;border-radius:2px;transition:all 0.3s;cursor:pointer}
+.hero-cta:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--crimson-deep);transform:translateY(-2px)}
+.scroll-indicator{margin-top:3rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;opacity:0.5}
+.scroll-text{font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold);text-transform:uppercase}
+.scroll-arrow{width:18px;height:18px;border-right:1px solid var(--gold);border-bottom:1px solid var(--gold);transform:rotate(45deg);animation:bounce 1.5s infinite}
+@keyframes bounce{0%,100%{transform:rotate(45deg) translateY(0)}50%{transform:rotate(45deg) translateY(5px)}}
+.verse-banner{background:linear-gradient(135deg,rgba(139,0,0,0.3),rgba(90,0,0,0.2));border-top:1px solid rgba(212,160,23,0.2);border-bottom:1px solid rgba(212,160,23,0.2);padding:2.5rem 2rem;text-align:center}
+.verse-text{font-size:clamp(1rem,2.5vw,1.3rem);color:var(--gold-pale);font-style:italic;max-width:700px;margin:0 auto 0.5rem;line-height:1.7}
+.verse-ref{font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:var(--gold);text-transform:uppercase}
+section{padding:5rem 2rem}
+#countdown-section{background:var(--dark2);text-align:center;padding:4rem 2rem}
+#programacao{background:var(--dark3)}
+#lideranca{background:var(--dark2)}
+#preparacao{background:var(--dark3)}
+#inscricoes{background:var(--dark2);text-align:center}
+#regulamento{background:var(--dark3)}
+#ranking{background:var(--dark2)}
+#aovivo{background:var(--dark3)}
+#jogos{background:var(--dark2)}
+#mapa{background:var(--dark3)}
+#galeria{background:var(--dark2)}
+#noticias{background:var(--dark3)}
+#contato{background:var(--dark2)}
+.section-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.2rem,3vw,1.8rem);color:var(--gold);letter-spacing:3px;margin-bottom:0.5rem}
+.section-header{text-align:center;margin-bottom:3rem}
+.section-sub{font-size:1rem;color:var(--text-muted);font-style:italic;margin-bottom:2.5rem}
+.countdown-grid{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:3rem}
+.countdown-box{background:linear-gradient(180deg,rgba(139,0,0,0.25),rgba(90,0,0,0.15));border:1px solid rgba(212,160,23,0.35);padding:1.5rem 2rem;min-width:100px;border-radius:3px;position:relative}
+.countdown-box::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:60%;height:1px;background:var(--gold-light);opacity:0.6}
+.countdown-num{font-family:'Cinzel Decorative',serif;font-size:clamp(2.5rem,6vw,3.5rem);color:var(--gold-light);line-height:1;display:block}
+.countdown-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;margin-top:0.4rem;display:block}
+.music-section{max-width:700px;margin:0 auto;padding:0 1rem}
+.music-title{font-family:'Cinzel',serif;font-size:13px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:1.5rem}
+.music-player-wrap{background:rgba(139,0,0,0.1);border:1px solid rgba(212,160,23,0.2);border-radius:4px;overflow:hidden;margin-bottom:1rem}
+.yt-embed{position:relative;padding-bottom:56.25%;height:0;overflow:hidden}
+.yt-embed iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+.schedule-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;max-width:1100px;margin:0 auto}
+.day-card{background:rgba(139,0,0,0.12);border:1px solid rgba(212,160,23,0.25);border-radius:3px;overflow:hidden}
+.day-header{background:linear-gradient(135deg,var(--crimson-deep),var(--crimson));padding:1rem 1.25rem;display:flex;align-items:center;gap:0.75rem}
+.day-num{font-family:'Cinzel Decorative',serif;font-size:2rem;color:var(--gold-light);line-height:1}
+.day-name{font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:var(--gold-pale);text-transform:uppercase}
+.day-date{font-size:13px;color:rgba(255,243,204,0.7);margin-top:2px}
+.day-body{padding:1rem 1.25rem}
+.si{display:flex;gap:0.75rem;padding:0.5rem 0;border-bottom:1px solid rgba(212,160,23,0.1);font-size:14px}
+.si:last-child{border-bottom:none}
+.si-time{font-family:'Cinzel',serif;font-size:11px;color:var(--gold);min-width:52px;padding-top:1px;letter-spacing:1px}
+.si-act{color:var(--text-muted);line-height:1.4}
+.si-hi{color:var(--gold-pale);font-style:italic}
+.org-top{display:flex;flex-wrap:wrap;gap:1.25rem;justify-content:center;margin-bottom:2rem}
+.org-top2{display:flex;flex-wrap:wrap;gap:1.25rem;justify-content:center;margin-bottom:3rem}
+.leader-card{background:linear-gradient(180deg,rgba(139,0,0,0.2),rgba(90,0,0,0.1));border:1px solid rgba(212,160,23,0.35);padding:1.25rem 1.5rem;text-align:center;min-width:200px;max-width:260px;flex:1;border-radius:3px}
+.leader-card.gold{border-color:var(--gold);box-shadow:0 0 20px rgba(212,160,23,0.15)}
+.l-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--crimson),var(--crimson-deep));border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;font-family:'Cinzel',serif;font-size:18px;color:var(--gold-light);font-weight:700}
+.l-role{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:0.35rem}
+.l-name{font-family:'Cinzel',serif;font-size:1rem;color:var(--text-light);font-weight:600}
+.org-line{display:flex;justify-content:center;margin:0.5rem 0}
+.org-line div{width:1px;height:30px;background:linear-gradient(180deg,var(--gold),rgba(212,160,23,0.2))}
+.regions-title{text-align:center;font-family:'Cinzel',serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin:1rem 0 1.5rem;opacity:0.8}
+.regions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:1rem;max-width:1100px;margin:0 auto}
+.region-card{background:rgba(90,0,0,0.15);border:1px solid rgba(212,160,23,0.2);padding:1rem 1.25rem;border-radius:3px;text-align:center}
+.r-badge{display:inline-block;background:linear-gradient(135deg,var(--crimson-deep),var(--crimson));color:var(--gold-light);font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;padding:3px 10px;border-radius:2px;margin-bottom:0.5rem;text-transform:uppercase}
+.r-leader{font-size:13px;color:var(--text-muted)}
+.r-leader span{color:var(--text-light);font-weight:600;display:block;font-size:14px;margin-top:2px}
+.insc-box{max-width:600px;margin:0 auto;background:linear-gradient(180deg,rgba(139,0,0,0.2),rgba(90,0,0,0.1));border:1px solid rgba(212,160,23,0.4);padding:3rem;border-radius:4px}
+.insc-status{display:inline-block;background:rgba(212,160,23,0.15);border:1px solid var(--gold);color:var(--gold-light);font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;padding:5px 16px;border-radius:2px;margin-bottom:1.5rem;text-transform:uppercase}
+.insc-text{font-size:1.05rem;color:var(--text-muted);line-height:1.8;margin-bottom:2rem}
+.insc-btn{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--crimson-deep);font-family:'Cinzel',serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;padding:1rem 3rem;border-radius:2px;font-weight:700;transition:all 0.3s;cursor:pointer;border:none}
+.insc-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(212,160,23,0.3)}
+/* PREPARAÇÃO */
+.prep-intro{text-align:center;max-width:700px;margin:0 auto 2.5rem;font-size:1.05rem;color:var(--text-muted);line-height:1.8;font-style:italic}
+.checklist-tabs{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.tab-btn{background:rgba(90,0,0,0.15);border:1px solid rgba(212,160,23,0.2);color:var(--text-muted);font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;padding:0.6rem 1.25rem;border-radius:2px;cursor:pointer;text-transform:uppercase;transition:all 0.2s}
+.tab-btn.active{background:linear-gradient(135deg,var(--crimson),var(--crimson-bright));border-color:var(--gold);color:var(--gold-pale)}
+.checklist-panel{display:none;max-width:820px;margin:0 auto}
+.checklist-panel.active{display:block}
+.checklist-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem}
+.checklist-card{background:rgba(90,0,0,0.12);border:1px solid rgba(212,160,23,0.2);border-radius:3px;padding:1.25rem}
+.cc-title{font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(212,160,23,0.15)}
+.check-item{display:flex;align-items:flex-start;gap:0.75rem;padding:0.5rem 0;border-bottom:1px solid rgba(212,160,23,0.07);cursor:pointer;user-select:none}
+.check-item:last-child{border-bottom:none}
+.check-box{width:18px;height:18px;border:1px solid rgba(212,160,23,0.4);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all 0.2s;font-size:11px;font-weight:700;color:var(--gold-light)}
+.check-item.done .check-box{background:linear-gradient(135deg,var(--crimson),var(--crimson-bright));border-color:var(--gold)}
+.check-label{font-size:13px;color:var(--text-muted);line-height:1.5;transition:color 0.2s}
+.check-item.done .check-label{color:rgba(201,168,122,0.35);text-decoration:line-through}
+.prep-progress{max-width:820px;margin:2rem auto 0;background:rgba(90,0,0,0.15);border:1px solid rgba(212,160,23,0.2);border-radius:3px;padding:1.25rem;text-align:center}
+.pp-label{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:0.75rem}
+.pp-bar-wrap{background:rgba(0,0,0,0.3);border-radius:2px;height:8px;overflow:hidden;margin-bottom:0.5rem}
+.pp-bar{height:100%;background:linear-gradient(90deg,var(--crimson),var(--gold));border-radius:2px;transition:width 0.4s ease;width:0%}
+.pp-pct{font-family:'Cinzel Decorative',serif;font-size:1.2rem;color:var(--gold-light)}
+/* RANKING */
+.ranking-wrap{max-width:820px;margin:0 auto}
+.ranking-badge{display:inline-block;background:rgba(212,160,23,0.1);border:1px solid var(--gold);color:var(--gold-light);font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;padding:6px 18px;border-radius:2px;text-transform:uppercase;margin-bottom:2rem}
+.rtable{width:100%;border-collapse:collapse}
+.rtable th{background:linear-gradient(135deg,var(--crimson-deep),var(--crimson));color:var(--gold-pale);font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:0.85rem 1rem;text-align:left}
+.rtable td{padding:0.85rem 1rem;border-bottom:1px solid rgba(212,160,23,0.1);font-size:14px;color:var(--text-muted)}
+.rtable tr:hover td{background:rgba(139,0,0,0.1);color:var(--text-light)}
+.rk-pos{font-family:'Cinzel Decorative',serif;font-size:1.1rem}
+.rk-gold{color:#FFD700}.rk-silver{color:#C0C0C0}.rk-bronze{color:#CD7F32}.rk-rest{color:var(--gold-light)}
+.rk-clube{font-family:'Cinzel',serif;color:var(--text-light)}
+.rk-pts{font-family:'Cinzel Decorative',serif;color:var(--gold)}
+.ranking-note{text-align:center;margin-top:1.5rem;font-size:13px;color:var(--text-muted);font-style:italic}
+/* AO VIVO */
+.live-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;max-width:1100px;margin:0 auto}
+.live-card{background:rgba(90,0,0,0.12);border:1px solid rgba(212,160,23,0.2);border-radius:3px;overflow:hidden}
+.live-card-header{background:linear-gradient(135deg,var(--crimson-deep),var(--crimson));padding:1rem 1.25rem;display:flex;align-items:center;gap:0.75rem}
+.live-dot{width:10px;height:10px;border-radius:50%;background:#ff4444;animation:livePulse 1.2s infinite}
+.live-dot.off{background:rgba(255,255,255,0.2);animation:none}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)}}
+.live-card-title{font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;color:var(--gold-pale);text-transform:uppercase}
+.live-card-body{padding:1.25rem}
+.live-badge{display:inline-block;padding:4px 12px;border-radius:2px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem}
+.live-badge.online{background:rgba(255,68,68,0.15);border:1px solid #ff4444;color:#ff8888}
+.live-badge.offline{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted)}
+.live-desc{font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:1rem}
+.live-btn{display:inline-block;background:linear-gradient(135deg,var(--crimson),var(--crimson-bright));color:var(--gold-pale);font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;padding:0.5rem 1.25rem;border-radius:2px;text-transform:uppercase;border:1px solid rgba(212,160,23,0.3);cursor:pointer;text-decoration:none;transition:all 0.2s}
+.live-btn:hover{border-color:var(--gold)}.live-btn.dis{opacity:0.4;cursor:not-allowed}
+/* REG */
+.reg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;max-width:1100px;margin:0 auto}
+.reg-card{background:rgba(90,0,0,0.12);border:1px solid rgba(212,160,23,0.2);padding:1.5rem;border-radius:3px}
+.reg-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--crimson),var(--crimson-bright));border-radius:2px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:20px}
+.reg-card-title{font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;color:var(--gold);margin-bottom:0.75rem;text-transform:uppercase}
+.reg-card-text{font-size:14px;color:var(--text-muted);line-height:1.7}
+.reg-center{text-align:center;margin-top:2rem}
+.reg-dl{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(139,0,0,0.2);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;padding:0.7rem 1.5rem;border-radius:2px;text-decoration:none;text-transform:uppercase;transition:all 0.2s;cursor:pointer}
+.reg-dl:hover{background:var(--gold);color:var(--crimson-deep)}
+/* JOGOS */
+.games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;max-width:1100px;margin:0 auto}
+.game-card{background:linear-gradient(180deg,rgba(139,0,0,0.2),rgba(90,0,0,0.1));border:1px solid rgba(212,160,23,0.3);padding:1.75rem;border-radius:3px;text-align:center;cursor:pointer;transition:all 0.3s}
+.game-card:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 8px 25px rgba(139,0,0,0.3)}
+.game-icon{font-size:36px;margin-bottom:0.75rem}
+.game-name{font-family:'Cinzel',serif;font-size:13px;letter-spacing:2px;color:var(--gold-pale);text-transform:uppercase;margin-bottom:0.5rem}
+.game-desc{font-size:13px;color:var(--text-muted)}
+.game-btn{display:inline-block;margin-top:1rem;background:linear-gradient(135deg,var(--crimson),var(--crimson-bright));color:var(--gold-pale);font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;padding:0.5rem 1.25rem;border-radius:2px;text-transform:uppercase;border:1px solid rgba(212,160,23,0.3)}
+/* MAPA */
+.map-container{max-width:900px;margin:0 auto}
+.map-info{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
+.map-info-card{background:rgba(90,0,0,0.15);border:1px solid rgba(212,160,23,0.25);padding:1.25rem;border-radius:3px}
+.map-info-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:0.4rem}
+.map-info-val{font-size:15px;color:var(--text-light);line-height:1.6}
+.map-embed{border-radius:4px;overflow:hidden;border:1px solid rgba(212,160,23,0.2)}
+.map-embed iframe{width:100%;height:350px;border:none}
+/* GALERIA */
+.gallery-placeholder{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+.gallery-item{aspect-ratio:4/3;background:linear-gradient(135deg,rgba(139,0,0,0.2),rgba(90,0,0,0.1));border:1px solid rgba(212,160,23,0.15);border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;font-family:'Cinzel',serif;letter-spacing:2px;text-transform:uppercase;transition:border-color 0.2s}
+.gallery-item:hover{border-color:var(--gold)}
+/* NOTÍCIAS */
+.news-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;max-width:1100px;margin:0 auto}
+.news-card{background:rgba(90,0,0,0.12);border:1px solid rgba(212,160,23,0.2);border-radius:3px;overflow:hidden}
+.news-date-bar{background:linear-gradient(135deg,var(--crimson-deep),var(--crimson));padding:0.5rem 1rem;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold-pale);text-transform:uppercase}
+.news-body{padding:1.25rem}
+.news-tag{display:inline-block;background:rgba(212,160,23,0.1);border:1px solid rgba(212,160,23,0.3);color:var(--gold);font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-bottom:0.75rem}
+.news-title{font-family:'Cinzel',serif;font-size:15px;color:var(--text-light);margin-bottom:0.5rem;line-height:1.4}
+.news-excerpt{font-size:13px;color:var(--text-muted);line-height:1.6}
+/* FAQ */
+.faq-list{max-width:750px;margin:0 auto 3rem}
+.faq-item{border-bottom:1px solid rgba(212,160,23,0.15)}
+.faq-q{padding:1.25rem 0;font-family:'Cinzel',serif;font-size:13px;color:var(--gold-pale);cursor:pointer;display:flex;justify-content:space-between;align-items:center;letter-spacing:1px;user-select:none}
+.faq-q:hover{color:var(--gold-light)}
+.faq-toggle{color:var(--gold);font-size:20px;transition:transform 0.3s;flex-shrink:0}
+.faq-a{max-height:0;overflow:hidden;transition:max-height 0.4s ease;font-size:14px;color:var(--text-muted);line-height:1.8}
+.faq-a.open{max-height:200px;padding-bottom:1rem}
+.faq-toggle.open{transform:rotate(45deg)}
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;max-width:750px;margin:0 auto}
+.contact-item{background:rgba(90,0,0,0.12);border:1px solid rgba(212,160,23,0.2);padding:1.25rem;border-radius:3px;text-align:center}
+.contact-icon{font-size:28px;margin-bottom:0.5rem}
+.contact-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:0.3rem}
+.contact-val{font-size:13px;color:var(--text-muted)}
+footer{background:var(--dark);border-top:1px solid rgba(212,160,23,0.2);padding:2.5rem 2rem;text-align:center}
+.footer-logo{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--gold);margin-bottom:0.5rem}
+.footer-text{font-size:13px;color:var(--text-muted);line-height:1.8}
+.footer-div{width:60px;height:1px;background:var(--gold);margin:1rem auto;opacity:0.4}
+/* MODAIS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9000;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal-box{background:linear-gradient(180deg,#1A0C0C,#0F0606);border:1px solid var(--gold);border-radius:4px;padding:2rem;max-width:580px;width:100%;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--gold);font-size:1.5rem;cursor:pointer}
+.quiz-q{font-family:'Cinzel',serif;font-size:1.05rem;color:var(--gold-pale);margin-bottom:1.5rem;line-height:1.5}
+.quiz-opts{display:grid;gap:0.75rem}
+.quiz-opt{background:rgba(139,0,0,0.1);border:1px solid rgba(212,160,23,0.25);padding:0.85rem 1rem;border-radius:3px;cursor:pointer;font-size:14px;color:var(--text-muted);transition:all 0.2s;text-align:left;width:100%}
+.quiz-opt:hover{border-color:var(--gold);color:var(--text-light)}
+.quiz-opt.correct{background:rgba(0,100,0,0.2);border-color:#4CAF50;color:#90EE90}
+.quiz-opt.wrong{background:rgba(139,0,0,0.3);border-color:var(--crimson-bright);color:#FF9999}
+.quiz-fb{margin-top:1rem;padding:1rem;border-radius:3px;font-size:14px;line-height:1.6;display:none}
+.quiz-fb.show{display:block}
+.quiz-fb.correct{background:rgba(0,100,0,0.15);border:1px solid #4CAF50;color:#90EE90}
+.quiz-fb.wrong{background:rgba(139,0,0,0.15);border:1px solid var(--crimson-bright);color:#FFB0B0}
+.quiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem}
+.quiz-prog{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--text-muted)}
+.quiz-next{background:linear-gradient(135deg,var(--crimson),var(--crimson-bright));color:var(--gold-pale);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;padding:0.6rem 1.5rem;border-radius:2px;cursor:pointer;text-transform:uppercase}
+/* CAÇA PALAVRAS */
+#wsGrid{display:grid;gap:2px;margin-bottom:1rem;user-select:none;cursor:crosshair}
+.ws-cell{width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:rgba(139,0,0,0.1);border:1px solid rgba(212,160,23,0.15);border-radius:2px;font-family:'Cinzel',serif;font-size:11px;color:var(--text-muted);transition:background 0.1s;-webkit-tap-highlight-color:transparent}
+.ws-cell.selecting{background:rgba(212,160,23,0.3);color:var(--gold-light)}
+.ws-cell.found{background:rgba(0,120,0,0.35);color:#90EE90;border-color:#4CAF50}
+@media(max-width:768px){
+  .nav-links{display:none}.nav-links.open{display:flex;flex-direction:column;position:fixed;top:60px;left:0;right:0;background:#0A0505;padding:1rem;gap:1rem;border-bottom:1px solid rgba(212,160,23,0.2);z-index:998}
+  .nav-toggle{display:block}.map-info{grid-template-columns:1fr}.checklist-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<canvas id="particles-canvas"></canvas>
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#hero">O Desejado</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#countdown-section">Início</a></li>
+      <li><a href="#programacao">Programação</a></li>
+      <li><a href="#lideranca">Liderança</a></li>
+      <li><a href="#preparacao">Preparação</a></li>
+      <li><a href="#inscricoes">Inscrições</a></li>
+      <li><a href="#regulamento">Regulamento</a></li>
+      <li><a href="#ranking">Ranking</a></li>
+      <li><a href="#aovivo">Ao Vivo</a></li>
+      <li><a href="#jogos">Jogos</a></li>
+      <li><a href="#mapa">Local</a></li>
+      <li><a href="#contato">Contato</a></li>
+    </ul>
+    <button class="nav-toggle" onclick="toggleNav()">☰</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <svg class="crown-svg" viewBox="0 0 90 70" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#F0C040"/><stop offset="50%" style="stop-color:#D4A017"/><stop offset="100%" style="stop-color:#A07010"/></linearGradient></defs>
+      <polygon points="10,60 10,30 25,45 45,10 65,45 80,30 80,60" fill="url(#cg)" stroke="#D4A017" stroke-width="1"/>
+      <circle cx="45" cy="12" r="5" fill="#CC1111" stroke="#F0C040" stroke-width="1"/>
+      <circle cx="10" cy="30" r="4" fill="#3344CC" stroke="#F0C040" stroke-width="1"/>
+      <circle cx="80" cy="30" r="4" fill="#3344CC" stroke="#F0C040" stroke-width="1"/>
+      <rect x="10" y="58" width="70" height="8" rx="1" fill="url(#cg)"/>
+    </svg>
+    <p class="hero-eyebrow">XI Campori APSo · Ministério dos Desbravadores e Aventureiros</p>
+    <p class="hero-title-small">O</p>
+    <h1 class="hero-title">DESEJADO</h1>
+    <div class="hero-divider"><div class="hero-divider-line"></div><div class="hero-divider-diamond"></div><div class="hero-divider-line"></div></div>
+    <p class="hero-subtitle">Araçoiaba da Serra &nbsp;·&nbsp; 04 a 07 de Setembro de 2026</p>
+    <div class="hero-badges"><span class="badge">Centro de Treinamento Adventista</span><span class="badge">Associação Paulista Sudoeste</span></div>
+    <a class="hero-cta" href="#inscricoes">Inscreva Seu Clube</a>
+    <div class="scroll-indicator"><span class="scroll-text">Scroll</span><div class="scroll-arrow"></div></div>
+  </div>
+</section>
+
+<!-- VERSÍCULO -->
+<div class="verse-banner reveal">
+  <p class="verse-text">"E ele sacudirá todas as nações, e virá o Desejado de todas as nações; e encherei esta casa de glória, diz o Senhor dos Exércitos."</p>
+  <p class="verse-ref">Ageu 2:7 · O Desejado das Nações</p>
+</div>
+
+<!-- COUNTDOWN -->
+<section id="countdown-section">
+  <h2 class="section-title reveal">Contagem Regressiva</h2>
+  <p class="section-sub reveal">A hora está chegando — prepare seu clube!</p>
+  <div class="countdown-grid">
+    <div class="countdown-box reveal reveal-delay-1"><span class="countdown-num" id="cd-days">--</span><span class="countdown-label">Dias</span></div>
+    <div class="countdown-box reveal reveal-delay-2"><span class="countdown-num" id="cd-hours">--</span><span class="countdown-label">Horas</span></div>
+    <div class="countdown-box reveal reveal-delay-3"><span class="countdown-num" id="cd-min">--</span><span class="countdown-label">Minutos</span></div>
+    <div class="countdown-box reveal reveal-delay-4"><span class="countdown-num" id="cd-sec">--</span><span class="countdown-label">Segundos</span></div>
+  </div>
+  <div class="music-section reveal">
+    <p class="music-title">🎵 Música Tema Oficial do Campori</p>
+    <div class="music-player-wrap"><div class="yt-embed"><iframe src="https://www.youtube.com/embed/T6qrqcOn3A8" title="Música Tema – O Desejado" allowfullscreen></iframe></div></div>
+    <div style="margin-top:1rem"><iframe style="border-radius:4px" src="https://open.spotify.com/embed/track/7hRcsVMSATCxNIis7b9L0B?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+  </div>
+</section>
+
+<!-- PROGRAMAÇÃO -->
+<section id="programacao">
+  <div class="section-header"><h2 class="section-title reveal">Programação</h2><p class="section-sub reveal">04 a 07 de Setembro de 2026 · Araçoiaba da Serra</p></div>
+  <div class="schedule-grid">
+    <div class="day-card reveal reveal-delay-1">
+      <div class="day-header"><div class="day-num">04</div><div><div class="day-name">Quinta-feira</div><div class="day-date">Setembro 2026</div></div></div>
+      <div class="day-body">
+        <div class="si"><span class="si-time">14h</span><span class="si-act">Abertura de portões e credenciamento</span></div>
+        <div class="si"><span class="si-time">17h</span><span class="si-act">Instalação dos acampamentos</span></div>
+        <div class="si"><span class="si-time">19h</span><span class="si-act si-hi">🔥 Cerimônia de Abertura Oficial</span></div>
+        <div class="si"><span class="si-time">21h</span><span class="si-act">Programa Noturno</span></div>
+      </div>
+    </div>
+    <div class="day-card reveal reveal-delay-2">
+      <div class="day-header"><div class="day-num">05</div><div><div class="day-name">Sexta-feira</div><div class="day-date">Setembro 2026</div></div></div>
+      <div class="day-body">
+        <div class="si"><span class="si-time">07h</span><span class="si-act">Devocional matinal</span></div>
+        <div class="si"><span class="si-time">08h30</span><span class="si-act">Inspeção de acampamento e uniforme</span></div>
+        <div class="si"><span class="si-time">14h</span><span class="si-act">Provas de especialidades</span></div>
+        <div class="si"><span class="si-time">18h</span><span class="si-act si-hi">✨ Início do Sábado – Pôr do Sol</span></div>
+        <div class="si"><span class="si-time">20h</span><span class="si-act">Programa noturno especial</span></div>
+      </div>
+    </div>
+    <div class="day-card reveal reveal-delay-3">
+      <div class="day-header"><div class="day-num">06</div><div><div class="day-name">Sábado</div><div class="day-date">Setembro 2026</div></div></div>
+      <div class="day-body">
+        <div class="si"><span class="si-time">07h</span><span class="si-act">Culto matinal</span></div>
+        <div class="si"><span class="si-time">09h</span><span class="si-act si-hi">⛪ Escola Sabatina e Culto Divino</span></div>
+        <div class="si"><span class="si-time">14h</span><span class="si-act">Atividades espirituais e recreativas</span></div>
+        <div class="si"><span class="si-time">19h30</span><span class="si-act">Havdalá – Encerramento do Sábado</span></div>
+        <div class="si"><span class="si-time">21h</span><span class="si-act">Noite de gala / show de talentos</span></div>
+      </div>
+    </div>
+    <div class="day-card reveal reveal-delay-4">
+      <div class="day-header"><div class="day-num">07</div><div><div class="day-name">Domingo</div><div class="day-date">Setembro 2026</div></div></div>
+      <div class="day-body">
+        <div class="si"><span class="si-time">07h</span><span class="si-act">Culto matinal</span></div>
+        <div class="si"><span class="si-time">09h</span><span class="si-act">Atividades esportivas e finalistas</span></div>
+        <div class="si"><span class="si-time">14h</span><span class="si-act si-hi">🏆 Cerimônia de Encerramento e Premiação</span></div>
+        <div class="si"><span class="si-time">16h</span><span class="si-act">Desativação dos acampamentos</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIDERANÇA -->
+<section id="lideranca">
+  <div class="section-header"><h2 class="section-title reveal">Nossa Liderança</h2><p class="section-sub reveal">Organograma do Ministério dos Desbravadores e Aventureiros – APSo</p></div>
+  <div class="org-top">
+    <div class="leader-card gold reveal"><div class="l-avatar">KC</div><div class="l-role">Pastor Departamental MDA</div><div class="l-name">Kevin Choque</div></div>
+  </div>
+  <div class="org-line"><div></div></div>
+  <div class="org-top2">
+    <div class="leader-card reveal reveal-delay-1"><div class="l-avatar">MF</div><div class="l-role">Secretária de Campo</div><div class="l-name">Maria de Fátima</div></div>
+    <div class="leader-card reveal reveal-delay-2"><div class="l-avatar">VD</div><div class="l-role">Coordenador Geral de Desbravadores</div><div class="l-name">Vandão</div></div>
+    <div class="leader-card reveal reveal-delay-3"><div class="l-avatar">AC</div><div class="l-role">Coordenador de Líderes de Desbravadores</div><div class="l-name">André Cieba</div></div>
+  </div>
+  <div class="regions-title reveal">— Coordenadores Regionais —</div>
+  <div class="regions-grid">
+    <div class="region-card reveal reveal-delay-1"><div class="r-badge">Região 1</div><div class="r-leader">Regional<span>Junior Quevedo</span></div></div>
+    <div class="region-card reveal reveal-delay-2"><div class="r-badge">Região 2</div><div class="r-leader">Regional<span>Franklin Bassi</span></div></div>
+    <div class="region-card reveal reveal-delay-3"><div class="r-badge">Região 3</div><div class="r-leader">Regional<span>Felipe</span></div></div>
+    <div class="region-card reveal reveal-delay-4"><div class="r-badge">Região 4</div><div class="r-leader">Regional<span>Marcos Oliveira</span></div></div>
+    <div class="region-card reveal reveal-delay-1"><div class="r-badge">Região 5</div><div class="r-leader">Regional<span>Daniel Rufino</span></div></div>
+    <div class="region-card reveal reveal-delay-2"><div class="r-badge">Região 6A</div><div class="r-leader">Regional<span>Antônio</span></div></div>
+    <div class="region-card reveal reveal-delay-3"><div class="r-badge">Região 6B</div><div class="r-leader">Regional<span>Sullian Martins</span></div></div>
+    <div class="region-card reveal reveal-delay-4"><div class="r-badge">Região 7A</div><div class="r-leader">Regional<span>Elisabete</span></div></div>
+    <div class="region-card reveal reveal-delay-1"><div class="r-badge">Região 7B</div><div class="r-leader">Regional<span>Antônia</span></div></div>
+  </div>
+</section>
+
+<!-- COMO SE PREPARAR -->
+<section id="preparacao">
+  <div class="section-header"><h2 class="section-title reveal">Como se Preparar</h2></div>
+  <p class="prep-intro reveal">Checklist oficial para diretores e líderes de clube. Marque cada item conforme seu clube avança na preparação para o XI Campori!</p>
+  <div class="checklist-tabs reveal">
+    <button class="tab-btn active" onclick="switchTab('docs',this)">📋 Documentação</button>
+    <button class="tab-btn" onclick="switchTab('uniforme',this)">👕 Uniforme</button>
+    <button class="tab-btn" onclick="switchTab('acampamento',this)">🏕️ Acampamento</button>
+    <button class="tab-btn" onclick="switchTab('especialidades',this)">🏅 Especialidades</button>
+    <button class="tab-btn" onclick="switchTab('espiritual',this)">✝️ Espiritual</button>
+  </div>
+  <div class="checklist-panel active" id="tab-docs">
+    <div class="checklist-grid">
+      <div class="checklist-card"><div class="cc-title">📄 Documentos do Clube</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Ficha de inscrição do clube preenchida e entregue</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Autorização dos pais / responsáveis de todos os membros</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Lista completa de membros com dados pessoais</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Credencial atualizada de cada líder e instrutor</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Apólice de seguro do grupo confirmada</span></div>
+      </div>
+      <div class="checklist-card"><div class="cc-title">🏥 Saúde e Segurança</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Ficha de saúde de cada membro preenchida</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Alergias e restrições alimentares informadas</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Kit de primeiros socorros do clube organizado</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Medicamentos de uso contínuo devidamente embalados</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Responsável de saúde do clube designado</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-panel" id="tab-uniforme">
+    <div class="checklist-grid">
+      <div class="checklist-card"><div class="cc-title">👕 Uniforme Completo</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Camisa oficial do uniforme de gala limpa e passada</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Lenço do clube devidamente dobrado</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Emblemas e distintivos corretamente posicionados</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Calça ou saia na cor padrão sem amassados</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Sapato preto engraxado</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Meias brancas sem manchas</span></div>
+      </div>
+      <div class="checklist-card"><div class="cc-title">🎖️ Insígnias e Distintivos</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Distintivo de classe atual corretamente fixado</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Patch do clube no lugar correto</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Especialidades conquistadas costuradas no pano</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Nome do membro visível e legível</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-panel" id="tab-acampamento">
+    <div class="checklist-grid">
+      <div class="checklist-card"><div class="cc-title">⛺ Estrutura do Acampamento</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Barracas testadas e em bom estado</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Mastro da bandeira do clube preparado</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Área de cozinha separada da área de dormir</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Varal organizado dentro do espaço do clube</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Lixeiras identificadas (orgânico e reciclável)</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Placa de identificação do clube instalada</span></div>
+      </div>
+      <div class="checklist-card"><div class="cc-title">🍳 Alimentação e Utensílios</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Cardápio planejado para os 4 dias</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Utensílios de cozinha completos e higienizados</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Botijão de gás verificado</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Água suficiente para o grupo</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Extintor ou balde de areia próximo ao fogão</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-panel" id="tab-especialidades">
+    <div class="checklist-grid">
+      <div class="checklist-card"><div class="cc-title">🏅 Especialidades Obrigatórias</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Verificar lista oficial de especialidades do Campori</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Confirmar quais membros já possuem cada especialidade</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Organizar classes para especialidades faltantes</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Panos de especialidades prontos e costurados</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Certificados de especialidades organizados</span></div>
+      </div>
+      <div class="checklist-card"><div class="cc-title">📚 Classes e Progressão</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Cada membro na classe adequada para sua idade</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Requisitos da classe atual cumpridos</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Cerimônia de avanço de classe preparada</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Livros e materiais de estudo disponíveis</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-panel" id="tab-espiritual">
+    <div class="checklist-grid">
+      <div class="checklist-card"><div class="cc-title">✝️ Preparação Espiritual</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Estudar o tema bíblico "O Desejado" com o clube</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Ler Isaías 28, Daniel 9 e Ageu 2 com os membros</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Organizar momentos devocionais diários no Campori</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Cada membro aprendeu a música tema do Campori</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Oração coletiva de dedicação do clube realizada</span></div>
+      </div>
+      <div class="checklist-card"><div class="cc-title">🤝 Comunidade e Missão</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Projeto de serviço comunitário realizado antes do Campori</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Membros incentivados a convidar amigos não-adventistas</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Dinâmica de integração preparada para o acampamento</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Clube comprometido com o testemunho durante o evento</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="prep-progress reveal">
+    <div class="pp-label">Progresso Total do Clube</div>
+    <div class="pp-bar-wrap"><div class="pp-bar" id="ppBar"></div></div>
+    <div class="pp-pct"><span id="ppPct">0</span>% concluído</div>
+  </div>
+</section>
+
+<!-- INSCRIÇÕES -->
+<section id="inscricoes">
+  <h2 class="section-title reveal">Inscrições</h2>
+  <p class="section-sub reveal">Garanta a participação do seu clube no maior evento da APSo</p>
+  <div class="insc-box reveal">
+    <span class="insc-status">Em Breve</span>
+    <p class="insc-text">As inscrições para o XI Campori da APSo — O Desejado — serão abertas em breve. Fique atento aos canais oficiais do Ministério dos Desbravadores e Aventureiros para não perder o prazo.</p>
+    <p style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--text-muted);margin-bottom:1.5rem;text-transform:uppercase">Data do Evento: 04 a 07 de Setembro de 2026</p>
+    <button class="insc-btn">Notifique-me quando abrir</button>
+  </div>
+</section>
+
+<!-- REGULAMENTO -->
+<section id="regulamento">
+  <div class="section-header"><h2 class="section-title reveal">Regulamento</h2><p class="section-sub reveal">Orientações oficiais para participação no Campori</p></div>
+  <div class="reg-grid">
+    <div class="reg-card reveal reveal-delay-1"><div class="reg-icon">📋</div><div class="reg-card-title">Inspeção</div><div class="reg-card-text">Normas de avaliação de uniforme, acampamento e postura. Cada detalhe conta para a pontuação do clube.</div></div>
+    <div class="reg-card reveal reveal-delay-2"><div class="reg-icon">🏅</div><div class="reg-card-title">Especialidades</div><div class="reg-card-text">Lista de especialidades exigidas e opcionais para o Campori. Prepare seu clube com antecedência.</div></div>
+    <div class="reg-card reveal reveal-delay-3"><div class="reg-icon">⚽</div><div class="reg-card-title">Atividades Esportivas</div><div class="reg-card-text">Modalidades esportivas, regras de participação e critérios de pontuação para competições do evento.</div></div>
+    <div class="reg-card reveal reveal-delay-1"><div class="reg-icon">🎭</div><div class="reg-card-title">Show de Talentos</div><div class="reg-card-text">Regras para apresentações artísticas, tempo permitido por clube e critérios de avaliação.</div></div>
+    <div class="reg-card reveal reveal-delay-2"><div class="reg-icon">📦</div><div class="reg-card-title">Itens Permitidos</div><div class="reg-card-text">Lista de materiais autorizados no acampamento. Segurança e organização são prioridade no Campori.</div></div>
+    <div class="reg-card reveal reveal-delay-3"><div class="reg-icon">🏆</div><div class="reg-card-title">Sistema de Pontuação</div><div class="reg-card-text">Como são calculados os pontos de cada clube e categorias de premiação ao final do evento.</div></div>
+  </div>
+  <div class="reg-center"><a class="reg-dl" href="#">📄 Baixar Regulamento Completo (PDF)</a></div>
+</section>
+
+<!-- RANKING -->
+<section id="ranking">
+  <div class="section-header"><h2 class="section-title reveal">Ranking Ao Vivo</h2><p class="section-sub reveal">Classificação dos clubes durante o Campori</p></div>
+  <div class="ranking-wrap">
+    <div style="text-align:center" class="reveal"><span class="ranking-badge">⏳ Ranking disponível a partir de 04/09/2026</span></div>
+    <div class="reveal" style="overflow-x:auto;margin-top:1.5rem">
+      <table class="rtable">
+        <thead><tr><th>#</th><th>Clube</th><th>Região</th><th>Inspeção</th><th>Especialidades</th><th>Esportes</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr><td><span class="rk-pos rk-gold">1°</span></td><td class="rk-clube">— Em breve —</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="rk-pts">—</span></td></tr>
+          <tr><td><span class="rk-pos rk-silver">2°</span></td><td class="rk-clube">— Em breve —</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="rk-pts">—</span></td></tr>
+          <tr><td><span class="rk-pos rk-bronze">3°</span></td><td class="rk-clube">— Em breve —</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="rk-pts">—</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="ranking-note reveal">O ranking será atualizado em tempo real durante os 4 dias do Campori. Acompanhe aqui a classificação do seu clube!</p>
+  </div>
+</section>
+
+<!-- AO VIVO -->
+<section id="aovivo">
+  <div class="section-header"><h2 class="section-title reveal">Transmissão & Ao Vivo</h2><p class="section-sub reveal">Para famílias e amigos que não poderão estar presentes</p></div>
+  <div class="live-grid">
+    <div class="live-card reveal reveal-delay-1">
+      <div class="live-card-header"><div class="live-dot off"></div><div class="live-card-title">Transmissão Principal</div></div>
+      <div class="live-card-body"><span class="live-badge offline">Offline — Aguardando 04/09/2026</span><p class="live-desc">Acompanhe ao vivo a cerimônia de abertura, programas noturnos e encerramento do XI Campori APSo. A transmissão estará disponível aqui a partir de 04 de setembro.</p><a class="live-btn dis" href="#">▶ Assistir ao Vivo</a></div>
+    </div>
+    <div class="live-card reveal reveal-delay-2">
+      <div class="live-card-header"><div class="live-dot off"></div><div class="live-card-title">Canal no YouTube</div></div>
+      <div class="live-card-body"><span class="live-badge offline">Em Breve</span><p class="live-desc">Inscreva-se no canal oficial do Ministério dos Desbravadores da APSo no YouTube e ative as notificações para não perder nenhum momento do Campori.</p><a class="live-btn" href="https://www.youtube.com" target="_blank">📺 Ir para o Canal</a></div>
+    </div>
+    <div class="live-card reveal reveal-delay-3">
+      <div class="live-card-header"><div class="live-dot off"></div><div class="live-card-title">Mural de Fotos Ao Vivo</div></div>
+      <div class="live-card-body"><span class="live-badge offline">Ativo durante o evento</span><p class="live-desc">Durante o Campori, familiares poderão ver fotos enviadas pelos líderes em tempo real nesta seção. Acompanhe cada momento do seu Desbravador!</p><a class="live-btn dis" href="#">📸 Ver Mural</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- JOGOS -->
+<section id="jogos">
+  <div class="section-header"><h2 class="section-title reveal">Jogos & Atividades</h2><p class="section-sub reveal">Divirta-se e teste seus conhecimentos sobre o Campori!</p></div>
+  <div class="games-grid">
+    <div class="game-card reveal reveal-delay-1" onclick="openQuiz()"><div class="game-icon">🧠</div><div class="game-name">Quiz Desbravador</div><div class="game-desc">Teste seus conhecimentos sobre o movimento Desbravador, a APSo e o tema do Campori.</div><div class="game-btn">Jogar Agora</div></div>
+    <div class="game-card reveal reveal-delay-2" onclick="openWordSearch()"><div class="game-icon">🔍</div><div class="game-name">Caça-Palavras</div><div class="game-desc">Arraste para selecionar as palavras escondidas relacionadas ao Campori e ao tema O Desejado.</div><div class="game-btn">Jogar Agora</div></div>
+    <div class="game-card reveal reveal-delay-3"><div class="game-icon">🏕️</div><div class="game-name">Monte o Acampamento</div><div class="game-desc">Em breve! Monte o acampamento perfeito do seu clube arrastando os itens para o lugar certo.</div><div class="game-btn" style="opacity:0.5">Em Breve</div></div>
+    <div class="game-card reveal reveal-delay-4" onclick="openTrivia()"><div class="game-icon">📖</div><div class="game-name">Bíblia Quiz</div><div class="game-desc">Perguntas baseadas na passagem bíblica do tema O Desejado — Isaías, Daniel e Ageu.</div><div class="game-btn">Jogar Agora</div></div>
+  </div>
+</section>
+
+<!-- MAPA -->
+<section id="mapa">
+  <div class="section-header"><h2 class="section-title reveal">Local do Evento</h2><p class="section-sub reveal">Centro de Treinamento Adventista – CTA Araçoiaba da Serra</p></div>
+  <div class="map-container reveal">
+    <div class="map-info">
+      <div class="map-info-card"><div class="map-info-label">📍 Local</div><div class="map-info-val">CTA – Centro de Treinamento Adventista<br>Araçoiaba da Serra – SP</div></div>
+      <div class="map-info-card"><div class="map-info-label">📅 Datas</div><div class="map-info-val">04 a 07 de Setembro de 2026<br>Qui – Dom</div></div>
+    </div>
+    <div class="map-embed"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3660.12!2d-47.8233!3d-23.5012!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94c594a0e4e4e4e5%3A0x0!2zQ1RBIEFyYcOnb2lhYmEgZGEgU2Vycg!5e0!3m2!1spt-BR!2sbr!4v1" allowfullscreen loading="lazy"></iframe></div>
+  </div>
+</section>
+
+<!-- GALERIA -->
+<section id="galeria">
+  <div class="section-header"><h2 class="section-title reveal">Galeria</h2><p class="section-sub reveal">Memórias dos Camporis anteriores e novidades do evento</p></div>
+  <div class="gallery-placeholder">
+    <div class="gallery-item reveal reveal-delay-1">Em Breve</div>
+    <div class="gallery-item reveal reveal-delay-2">Em Breve</div>
+    <div class="gallery-item reveal reveal-delay-3">Em Breve</div>
+    <div class="gallery-item reveal reveal-delay-1">Em Breve</div>
+    <div class="gallery-item reveal reveal-delay-2">Em Breve</div>
+    <div class="gallery-item reveal reveal-delay-3">Em Breve</div>
+  </div>
+</section>
+
+<!-- NOTÍCIAS -->
+<section id="noticias">
+  <div class="section-header"><h2 class="section-title reveal">Notícias & Atualizações</h2><p class="section-sub reveal">Fique por dentro de tudo sobre o XI Campori da APSo</p></div>
+  <div class="news-grid">
+    <div class="news-card reveal reveal-delay-1"><div class="news-date-bar">Maio · 2026</div><div class="news-body"><span class="news-tag">Oficial</span><div class="news-title">Logo e Tema Oficial Revelados!</div><div class="news-excerpt">O Ministério dos Desbravadores da APSo revela oficialmente o tema do XI Campori: O Desejado — inspirado em Isaías, Daniel e Ageu.</div></div></div>
+    <div class="news-card reveal reveal-delay-2"><div class="news-date-bar">Em Breve</div><div class="news-body"><span class="news-tag">Inscrições</span><div class="news-title">Abertura das Inscrições</div><div class="news-excerpt">Em breve, os clubes poderão realizar suas inscrições para o maior Campori da história da Associação Paulista Sudoeste.</div></div></div>
+    <div class="news-card reveal reveal-delay-3"><div class="news-date-bar">Em Breve</div><div class="news-body"><span class="news-tag">Regulamento</span><div class="news-title">Regulamento Oficial Disponível</div><div class="news-excerpt">O regulamento completo do XI Campori será publicado em breve. Prepare seu clube com antecedência!</div></div></div>
+  </div>
+</section>
+
+<!-- CONTATO / FAQ -->
+<section id="contato">
+  <div class="section-header"><h2 class="section-title reveal">Contato & FAQ</h2><p class="section-sub reveal">Dúvidas? Estamos aqui para ajudar</p></div>
+  <div class="faq-list">
+    <div class="faq-item reveal"><div class="faq-q" onclick="toggleFaq(this)">Quem pode participar do Campori? <span class="faq-toggle">+</span></div><div class="faq-a">Desbravadores com idade entre 10 e 15 anos, devidamente inscritos em clubes filiados à APSo da Igreja Adventista do Sétimo Dia, acompanhados por seus diretores e líderes credenciados.</div></div>
+    <div class="faq-item reveal"><div class="faq-q" onclick="toggleFaq(this)">Como faço a inscrição do meu clube? <span class="faq-toggle">+</span></div><div class="faq-a">As inscrições serão realizadas pelo sistema oficial da APSo. Aguarde a abertura e siga as instruções nos canais oficiais do Ministério dos Desbravadores.</div></div>
+    <div class="faq-item reveal"><div class="faq-q" onclick="toggleFaq(this)">O que é o CTA – Araçoiaba da Serra? <span class="faq-toggle">+</span></div><div class="faq-a">O Centro de Treinamento Adventista é uma estrutura da Igreja Adventista localizada em Araçoiaba da Serra – SP, com ampla área para acampamentos e suporte a grandes eventos como o Campori.</div></div>
+    <div class="faq-item reveal"><div class="faq-q" onclick="toggleFaq(this)">Qual é o tema bíblico do Campori? <span class="faq-toggle">+</span></div><div class="faq-a">O Desejado é uma referência ao nome messiânico presente em Isaías, Daniel e Ageu. O tema convida os desbravadores a conhecerem e desejarem a Cristo — O Desejado de todas as nações.</div></div>
+    <div class="faq-item reveal"><div class="faq-q" onclick="toggleFaq(this)">Como entro em contato com a organização? <span class="faq-toggle">+</span></div><div class="faq-a">Use os canais oficiais abaixo ou o email do Ministério dos Desbravadores da APSo. Nossa equipe responde em até 2 dias úteis.</div></div>
+  </div>
+  <div class="contact-grid">
+    <div class="contact-item reveal reveal-delay-1"><div class="contact-icon">📧</div><div class="contact-label">E-mail</div><div class="contact-val">desbravadores@apso.org.br</div></div>
+    <div class="contact-item reveal reveal-delay-2"><div class="contact-icon">📱</div><div class="contact-label">WhatsApp</div><div class="contact-val">Em breve</div></div>
+    <div class="contact-item reveal reveal-delay-3"><div class="contact-icon">📸</div><div class="contact-label">Instagram</div><div class="contact-val">@desbravadoresapso</div></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">O Desejado · XI Campori APSo</div>
+  <div class="footer-div"></div>
+  <p class="footer-text">04 a 07 de Setembro de 2026 · Araçoiaba da Serra – SP<br>Centro de Treinamento Adventista · Ministério dos Desbravadores e Aventureiros · APSo</p>
+  <p style="margin-top:1rem;font-size:12px;color:rgba(201,168,122,0.35);font-family:'Cinzel',serif;letter-spacing:2px">ASSOCIAÇÃO PAULISTA SUDOESTE · IGREJA ADVENTISTA DO SÉTIMO DIA</p>
+</footer>
+
+<!-- MODAIS -->
+<div class="modal-overlay" id="quizModal"><div class="modal-box"><button class="modal-close" onclick="closeModal('quizModal')">✕</button><h2 style="font-family:'Cinzel Decorative',serif;font-size:1.2rem;color:var(--gold);margin-bottom:0.25rem">Quiz Desbravador</h2><p style="font-size:13px;color:var(--text-muted);margin-bottom:1.5rem;font-style:italic">Teste seus conhecimentos!</p><div id="quizContent"></div></div></div>
+<div class="modal-overlay" id="wordModal"><div class="modal-box"><button class="modal-close" onclick="closeModal('wordModal')">✕</button><h2 style="font-family:'Cinzel Decorative',serif;font-size:1.2rem;color:var(--gold);margin-bottom:0.25rem">Caça-Palavras</h2><p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem;font-style:italic">Arraste para selecionar as palavras!</p><div id="wordContent"></div></div></div>
+<div class="modal-overlay" id="triviaModal"><div class="modal-box"><button class="modal-close" onclick="closeModal('triviaModal')">✕</button><h2 style="font-family:'Cinzel Decorative',serif;font-size:1.2rem;color:var(--gold);margin-bottom:0.25rem">Bíblia Quiz</h2><p style="font-size:13px;color:var(--text-muted);margin-bottom:1.5rem;font-style:italic">Perguntas sobre O Desejado!</p><div id="triviaContent"></div></div></div>
+
+<script>
+// PARTÍCULAS
+(function(){
+  var c=document.getElementById('particles-canvas'),ctx=c.getContext('2d'),pts=[],W,H;
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  for(var i=0;i<140;i++)pts.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,a:Math.random()*0.5+0.1,s:Math.random()*0.3+0.05,d:Math.random()*0.2-0.1,tw:Math.random()*Math.PI*2,gold:i>120});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(function(p){
+      p.tw+=0.02;var a=p.a*(0.6+0.4*Math.sin(p.tw));
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.gold?'rgba(212,160,23,'+a+')':'rgba(245,237,216,'+a+')';ctx.fill();
+      p.y-=p.s;p.x+=p.d;
+      if(p.y<-5){p.y=H+5;p.x=Math.random()*W;}
+      if(p.x<-5)p.x=W+5;if(p.x>W+5)p.x=-5;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+// PARALLAX
+window.addEventListener('scroll',function(){
+  var sy=window.scrollY,hc=document.querySelector('.hero-content');
+  if(hc&&sy<window.innerHeight)hc.style.transform='translateY('+(sy*0.22)+'px)';
+});
+// REVEAL
+var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el);});
+// COUNTDOWN
+function tick(){
+  var d=new Date('2026-09-04T14:00:00')-new Date();
+  if(d<0)d=0;
+  document.getElementById('cd-days').textContent=String(Math.floor(d/86400000)).padStart(2,'0');
+  document.getElementById('cd-hours').textContent=String(Math.floor((d%86400000)/3600000)).padStart(2,'0');
+  document.getElementById('cd-min').textContent=String(Math.floor((d%3600000)/60000)).padStart(2,'0');
+  document.getElementById('cd-sec').textContent=String(Math.floor((d%60000)/1000)).padStart(2,'0');
+}
+tick();setInterval(tick,1000);
+// NAV
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open');}
+// FAQ
+function toggleFaq(el){var a=el.nextElementSibling,t=el.querySelector('.faq-toggle');a.classList.toggle('open');t.classList.toggle('open');}
+// MODAIS
+function closeModal(id){document.getElementById(id).classList.remove('active');}
+// CHECKLIST
+function switchTab(name,btn){
+  document.querySelectorAll('.checklist-panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');updateProgress();
+}
+function toggleCheck(el){
+  el.classList.toggle('done');
+  el.querySelector('.check-box').textContent=el.classList.contains('done')?'✓':'';
+  updateProgress();
+}
+function updateProgress(){
+  var all=document.querySelectorAll('.check-item').length,done=document.querySelectorAll('.check-item.done').length;
+  var pct=all?Math.round(done/all*100):0;
+  document.getElementById('ppBar').style.width=pct+'%';
+  document.getElementById('ppPct').textContent=pct;
+}
+// QUIZ
+var qData=[
+  {q:"Qual é o nome do evento em Araçoiaba da Serra em setembro de 2026?",o:["IX Campori APSo","XI Campori APSo","X Campori APSo","XII Campori APSo"],a:1,e:"O XI Campori APSo – O Desejado será realizado de 04 a 07 de setembro de 2026 no CTA em Araçoiaba da Serra."},
+  {q:"Quantos anos têm os membros do Clube de Desbravadores?",o:["7 a 12 anos","10 a 15 anos","12 a 18 anos","8 a 14 anos"],a:1,e:"O Clube de Desbravadores é voltado para crianças e adolescentes entre 10 e 15 anos."},
+  {q:"Qual é o Pastor Departamental do MDA da APSo?",o:["André Cieba","Vandão","Kevin Choque","Daniel Rufino"],a:2,e:"O Pastor Kevin Choque é o Pastor Departamental do MDA – Ministério dos Desbravadores e Aventureiros da APSo."},
+  {q:"O tema 'O Desejado' é uma referência a qual personagem bíblico?",o:["Moisés","Davi","Jesus Cristo – O Messias","Paulo"],a:2,e:"O Desejado é um nome messiânico referente a Jesus Cristo, encontrado em Isaías, Daniel e Ageu."},
+  {q:"Em qual cidade está localizado o CTA onde acontecerá o Campori?",o:["Sorocaba","Araçoiaba da Serra","Itu","Piedade"],a:1,e:"O Centro de Treinamento Adventista (CTA) fica em Araçoiaba da Serra, no interior de São Paulo."}
+];
+var qi=0,qs=0,qa=false;
+function openQuiz(){qi=0;qs=0;qa=false;document.getElementById('quizModal').classList.add('active');rq();}
+function rq(){
+  qa=false;var q=qData[qi];
+  var h='<div class="quiz-q">'+q.q+'</div><div class="quiz-opts">';
+  q.o.forEach(function(o,i){h+='<button class="quiz-opt" onclick="aq('+i+')">'+o+'</button>';});
+  h+='</div><div class="quiz-fb" id="qfb"></div><div class="quiz-nav"><span class="quiz-prog">Pergunta '+(qi+1)+' de '+qData.length+'</span><button class="quiz-next" id="qn" onclick="nq()" style="display:none">Próxima →</button></div>';
+  document.getElementById('quizContent').innerHTML=h;
+}
+function aq(i){
+  if(qa)return;qa=true;var q=qData[qi];
+  var opts=document.querySelectorAll('#quizContent .quiz-opt'),fb=document.getElementById('qfb');
+  if(i===q.a){qs++;opts[i].classList.add('correct');fb.className='quiz-fb correct show';fb.textContent='✓ Correto! '+q.e;}
+  else{opts[i].classList.add('wrong');opts[q.a].classList.add('correct');fb.className='quiz-fb wrong show';fb.textContent='✗ Errado. '+q.e;}
+  var nb=document.getElementById('qn');nb.style.display='block';nb.textContent=qi<qData.length-1?'Próxima →':'Ver Resultado';
+}
+function nq(){
+  qi++;if(qi>=qData.length){document.getElementById('quizContent').innerHTML='<div style="text-align:center;padding:2rem"><div style="font-family:Cinzel Decorative,serif;font-size:3rem;color:var(--gold)">'+qs+'/'+qData.length+'</div><p style="font-family:Cinzel,serif;letter-spacing:2px;color:var(--gold-pale);margin:0.5rem 0">PONTUAÇÃO FINAL</p><p style="color:var(--text-muted);margin:1rem 0">'+(qs>=4?'Excelente! Você é um verdadeiro Desbravador!':(qs>=2?'Bom trabalho! Continue estudando.':'Continue praticando!'))+'</p><button class="quiz-next" onclick="openQuiz()">Jogar Novamente</button></div>';return;}rq();
+}
+// CAÇA-PALAVRAS
+var wsWords=["DESEJADO","CAMPORI","DESBRAVADOR","APSO","CORAGEM","AVENTURA","UNIFORME","LIDERANCA"];
+var wsGrid=[],wsPlaced=[],wsFound=[],wsSize=12,isDrag=false,dragStart=null,dragCells=[];
+function openWordSearch(){document.getElementById('wordModal').classList.add('active');buildWS();}
+function buildWS(){
+  wsGrid=[];wsPlaced=[];wsFound=[];
+  var L='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(var i=0;i<wsSize;i++){wsGrid.push([]);for(var j=0;j<wsSize;j++)wsGrid[i].push('');}
+  wsWords.forEach(function(word){
+    for(var t=0;t<200;t++){
+      var dir=Math.floor(Math.random()*2),r=Math.floor(Math.random()*wsSize),c=Math.floor(Math.random()*wsSize),ok=true,cells=[];
+      for(var k=0;k<word.length;k++){
+        var nr=r+(dir?k:0),nc=c+(dir?0:k);
+        if(nr>=wsSize||nc>=wsSize){ok=false;break;}
+        if(wsGrid[nr][nc]!==''&&wsGrid[nr][nc]!==word[k]){ok=false;break;}
+        cells.push([nr,nc]);
+      }
+      if(ok){cells.forEach(function(cell,k){wsGrid[cell[0]][cell[1]]=word[k];});wsPlaced.push({word:word,cells:cells});break;}
+    }
+  });
+  for(var i=0;i<wsSize;i++)for(var j=0;j<wsSize;j++)if(wsGrid[i][j]==='')wsGrid[i][j]=L[Math.floor(Math.random()*26)];
+  var h='<div id="wsGrid" style="grid-template-columns:repeat('+wsSize+',26px)">';
+  for(var i=0;i<wsSize;i++)for(var j=0;j<wsSize;j++)h+='<div class="ws-cell" data-r="'+i+'" data-c="'+j+'">'+wsGrid[i][j]+'</div>';
+  h+='</div><div style="margin-top:1rem"><p style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:0.5rem">Palavras:</p><div style="display:flex;flex-wrap:wrap;gap:6px" id="wsWL">';
+  wsWords.forEach(function(w){h+='<span id="wsw-'+w+'" style="background:rgba(90,0,0,0.2);border:1px solid rgba(212,160,23,0.25);padding:3px 10px;border-radius:2px;font-family:Cinzel,serif;font-size:11px;color:var(--text-muted)">'+w+'</span>';});
+  h+='</div></div>';
+  document.getElementById('wordContent').innerHTML=h;
+  attachWS();
+}
+function cell(r,c){return document.querySelector('.ws-cell[data-r="'+r+'"][data-c="'+c+'"]');}
+function lineOf(a,b){
+  var r0=+a.dataset.r,c0=+a.dataset.c,r1=+b.dataset.r,c1=+b.dataset.c,cells=[];
+  if(r0===r1){var s=c1>c0?1:-1;for(var c=c0;c!==c1+s;c+=s){var el=cell(r0,c);if(el)cells.push(el);}}
+  else if(c0===c1){var s=r1>r0?1:-1;for(var r=r0;r!==r1+s;r+=s){var el=cell(r,c0);if(el)cells.push(el);}}
+  else cells.push(a);
+  return cells;
+}
+function clearSel(){document.querySelectorAll('.ws-cell.selecting').forEach(function(c){c.classList.remove('selecting');});}
+function attachWS(){
+  var g=document.getElementById('wsGrid');if(!g)return;
+  g.addEventListener('mousedown',function(e){var c=e.target.closest('.ws-cell');if(!c)return;e.preventDefault();isDrag=true;dragStart=c;clearSel();c.classList.add('selecting');});
+  g.addEventListener('mouseover',function(e){if(!isDrag||!dragStart)return;var c=e.target.closest('.ws-cell');if(!c)return;clearSel();dragCells=lineOf(dragStart,c);dragCells.forEach(function(c){if(!c.classList.contains('found'))c.classList.add('selecting');});});
+  document.addEventListener('mouseup',function(){if(!isDrag)return;isDrag=false;checkWS(dragCells);dragCells=[];dragStart=null;clearSel();});
+  g.addEventListener('touchstart',function(e){var t=e.touches[0],el=document.elementFromPoint(t.clientX,t.clientY),c=el&&el.closest('.ws-cell');if(!c)return;e.preventDefault();isDrag=true;dragStart=c;clearSel();c.classList.add('selecting');},{passive:false});
+  g.addEventListener('touchmove',function(e){if(!isDrag||!dragStart)return;e.preventDefault();var t=e.touches[0],el=document.elementFromPoint(t.clientX,t.clientY),c=el&&el.closest('.ws-cell');if(!c)return;clearSel();dragCells=lineOf(dragStart,c);dragCells.forEach(function(c){if(!c.classList.contains('found'))c.classList.add('selecting');});},{passive:false});
+  g.addEventListener('touchend',function(){if(!isDrag)return;isDrag=false;checkWS(dragCells);dragCells=[];dragStart=null;clearSel();});
+}
+function checkWS(cells){
+  if(!cells||cells.length<2)return;
+  var str=cells.map(function(c){return c.textContent;}).join('');
+  wsPlaced.forEach(function(p){
+    if(wsFound.includes(p.word))return;
+    if(str===p.word||str===p.word.split('').reverse().join('')){
+      wsFound.push(p.word);
+      p.cells.forEach(function(rc){var el=cell(rc[0],rc[1]);if(el){el.classList.add('found');el.classList.remove('selecting');}});
+      var badge=document.getElementById('wsw-'+p.word);
+      if(badge){badge.style.textDecoration='line-through';badge.style.color='#90EE90';}
+      if(wsFound.length===wsPlaced.length)setTimeout(function(){alert('🎉 Parabéns! Você encontrou todas as palavras!');},300);
+    }
+  });
+}
+// BÍBLIA QUIZ
+var tData=[
+  {q:"Em qual livro bíblico aparece 'O Desejado das Nações'?",o:["Isaías","Daniel","Ageu","Zacarias"],a:2,e:"Ageu 2:7 menciona O Desejado de todas as nações — profecia messiânica sobre a vinda de Cristo."},
+  {q:"Qual profeta fez a profecia das 70 semanas?",o:["Isaías","Jeremias","Daniel","Ezequiel"],a:2,e:"Daniel capítulo 9 contém a profecia das 70 semanas, que aponta para o tempo do ministério de Jesus."},
+  {q:"O nome Jesus (Yeshua) significa:",o:["Rei dos Reis","O Senhor salva","Filho de Deus","O Desejado"],a:1,e:"Jesus (Yeshua) significa O Senhor salva ou Deus é salvação."},
+  {q:"Em Isaías 9:6, qual nome profético é dado ao Messias?",o:["O Desejado","Maravilhoso Conselheiro","Filho do Homem","O Santo"],a:1,e:"Isaías 9:6: Maravilhoso Conselheiro, Deus Forte, Pai da Eternidade, Príncipe da Paz."},
+  {q:"O que significa espiritualmente 'O Desejado' para os Desbravadores?",o:["Desejar especialidades","Buscar a Cristo acima de tudo","Conquistar troféus","Ser o melhor clube"],a:1,e:"O tema convida cada Desbravador a ter Cristo como o maior desejo do coração, acima de qualquer conquista."}
+];
+var ti=0,ts=0,ta=false;
+function openTrivia(){ti=0;ts=0;ta=false;document.getElementById('triviaModal').classList.add('active');rt();}
+function rt(){
+  ta=false;var q=tData[ti];
+  var h='<div class="quiz-q">'+q.q+'</div><div class="quiz-opts">';
+  q.o.forEach(function(o,i){h+='<button class="quiz-opt" onclick="at('+i+')">'+o+'</button>';});
+  h+='</div><div class="quiz-fb" id="tfb"></div><div class="quiz-nav"><span class="quiz-prog">Pergunta '+(ti+1)+' de '+tData.length+'</span><button class="quiz-next" id="tn" onclick="nt()" style="display:none">Próxima →</button></div>';
+  document.getElementById('triviaContent').innerHTML=h;
+}
+function at(i){
+  if(ta)return;ta=true;var q=tData[ti];
+  var opts=document.querySelectorAll('#triviaContent .quiz-opt'),fb=document.getElementById('tfb');
+  if(i===q.a){ts++;opts[i].classList.add('correct');fb.className='quiz-fb correct show';fb.textContent='✓ Correto! '+q.e;}
+  else{opts[i].classList.add('wrong');opts[q.a].classList.add('correct');fb.className='quiz-fb wrong show';fb.textContent='✗ Errado. '+q.e;}
+  var nb=document.getElementById('tn');nb.style.display='block';nb.textContent=ti<tData.length-1?'Próxima →':'Ver Resultado';
+}
+function nt(){
+  ti++;if(ti>=tData.length){document.getElementById('triviaContent').innerHTML='<div style="text-align:center;padding:2rem"><div style="font-family:Cinzel Decorative,serif;font-size:3rem;color:var(--gold)">'+ts+'/'+tData.length+'</div><p style="font-family:Cinzel,serif;letter-spacing:2px;color:var(--gold-pale);margin:0.5rem 0">PONTUAÇÃO FINAL</p><p style="color:var(--text-muted);margin:1rem 0">'+(ts>=4?'Parabéns! Você conhece bem a Palavra!':(ts>=2?'Bom! Continue estudando.':'Continue buscando O Desejado!'))+'</p><button class="quiz-next" onclick="openTrivia()">Jogar Novamente</button></div>';return;}rt();
+}
+</script>
+</body>
+</html>
