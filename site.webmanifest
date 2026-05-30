@@ -1,0 +1,17 @@
+{
+  "name": "XI Campori APSo - O Desejado",
+  "short_name": "Campori APSo",
+  "description": "Informações oficiais do XI Campori APSo - O Desejado.",
+  "lang": "pt-BR",
+  "start_url": "/campori-apso/",
+  "display": "standalone",
+  "background_color": "#0A0505",
+  "theme_color": "#0A0505",
+  "icons": [
+    {
+      "src": "assets/icons/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
