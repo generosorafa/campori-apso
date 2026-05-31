@@ -4,6 +4,7 @@ document.documentElement.classList.add("js");
 
 const eventDate = new Date("2026-09-04T14:00:00-03:00");
 const checklistKey = "campori-apso-checklist-v2";
+const campRankingKey = "campori-apso-camp-ranking-v1";
 
 const checklistData = {
   docs: [
@@ -234,11 +235,24 @@ const triviaData = [
 ];
 
 const wordSearchWords = ["DESEJADO", "CAMPORI", "DESBRAVADOR", "APSO", "CORAGEM", "AVENTURA", "UNIFORME", "LIDERANCA"];
+const campGrid = { rows: 6, cols: 6 };
+const campItems = [
+  { id: "entrada", label: "Entrada", code: "EN", hint: "Deve ficar em uma borda do terreno." },
+  { id: "barracas", label: "Barracas", code: "BA", hint: "Precisam ficar longe da fogueira e da area de lixo." },
+  { id: "cozinha", label: "Cozinha", code: "CZ", hint: "Funciona melhor perto da agua e longe do lixo." },
+  { id: "enfermaria", label: "Enfermaria", code: "EF", hint: "Deve estar acessivel pela entrada." },
+  { id: "banheiros", label: "Banheiros", code: "BN", hint: "Devem ficar afastados da cozinha e da agua." },
+  { id: "lixo", label: "Lixo", code: "LX", hint: "Precisa ficar isolado da cozinha, barracas e agua." },
+  { id: "agua", label: "Agua", code: "AG", hint: "Ajuda a cozinha, mas nao deve ficar junto ao lixo." },
+  { id: "fogueira", label: "Fogueira", code: "FG", hint: "Deve ficar distante das barracas." }
+];
+const campItemMap = Object.fromEntries(campItems.map((item) => [item.id, item]));
 
 let activeModal = null;
 let lastFocus = null;
 let quizState = { index: 0, score: 0, answered: false, data: quizData, target: "quizContent" };
 let triviaState = { index: 0, score: 0, answered: false, data: triviaData, target: "triviaContent" };
+let campState = createCampState();
 let wordGrid = [];
 let wordPlaced = [];
 let wordFound = [];
@@ -643,6 +657,11 @@ function initGames() {
       openModal("wordModal");
       buildWordSearch();
     }
+    if (game.dataset.game === "camp") {
+      campState = createCampState();
+      openModal("campModal");
+      renderCampGame();
+    }
   });
 }
 
@@ -897,6 +916,299 @@ function checkWord(cells) {
       if (wordFound.length === wordPlaced.length) showToast("Parabéns! Todas as palavras foram encontradas.");
     }
   });
+}
+
+function createCampState() {
+  return {
+    selected: "entrada",
+    placements: {},
+    score: null,
+    feedback: [],
+    club: ""
+  };
+}
+
+function loadCampRanking() {
+  try {
+    const data = JSON.parse(localStorage.getItem(campRankingKey) || "[]");
+    return Array.isArray(data) ? data.slice(0, 5) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCampRanking(entries) {
+  try {
+    localStorage.setItem(campRankingKey, JSON.stringify(entries.slice(0, 5)));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function renderCampGame() {
+  const target = document.getElementById("campContent");
+  if (!target) return;
+
+  target.replaceChildren(
+    el("div", { class: "camp-game" }, [
+      el("section", { class: "camp-panel", "aria-label": "Areas do acampamento" }, [
+        el("p", { class: "camp-help", text: "Escolha uma area e toque no terreno. No computador, tambem da para arrastar." }),
+        renderCampItems(),
+        renderCampActions()
+      ]),
+      el("section", { class: "camp-field", "aria-label": "Terreno do acampamento" }, [
+        renderCampBoard(),
+        renderCampResult()
+      ]),
+      renderCampRanking()
+    ])
+  );
+}
+
+function renderCampItems() {
+  const list = el("div", { class: "camp-items", role: "list" });
+  campItems.forEach((item) => {
+    const placed = Boolean(campState.placements[item.id]);
+    const button = el("button", {
+      class: `camp-item${campState.selected === item.id ? " selected" : ""}${placed ? " placed" : ""}`,
+      type: "button",
+      draggable: "true",
+      "data-camp-item": item.id,
+      "aria-pressed": String(campState.selected === item.id)
+    }, [
+      el("span", { class: "camp-code", text: item.code }),
+      el("strong", { text: item.label }),
+      el("small", { text: placed ? "Posicionado" : item.hint })
+    ]);
+    button.addEventListener("click", () => {
+      campState.selected = item.id;
+      renderCampGame();
+    });
+    button.addEventListener("dragstart", (event) => {
+      event.dataTransfer.setData("text/plain", item.id);
+      campState.selected = item.id;
+    });
+    list.appendChild(button);
+  });
+  return list;
+}
+
+function renderCampActions() {
+  const nameInput = el("input", {
+    class: "camp-name",
+    type: "text",
+    maxlength: "24",
+    placeholder: "Nome do clube",
+    value: campState.club,
+    "aria-label": "Nome do clube para o ranking local"
+  });
+  nameInput.addEventListener("input", () => {
+    campState.club = nameInput.value;
+  });
+
+  const validate = el("button", { class: "btn btn-primary", type: "button", text: "Validar acampamento" });
+  validate.addEventListener("click", validateCamp);
+
+  const save = el("button", { class: "btn btn-ghost", type: "button", text: "Salvar ranking local" });
+  save.disabled = campState.score === null;
+  save.addEventListener("click", saveCampScore);
+
+  const clear = el("button", { class: "link-button", type: "button", text: "Limpar terreno" });
+  clear.addEventListener("click", () => {
+    campState = createCampState();
+    renderCampGame();
+  });
+
+  return el("div", { class: "camp-actions" }, [nameInput, validate, save, clear]);
+}
+
+function renderCampBoard() {
+  const board = el("div", { class: "camp-board", role: "grid", "aria-label": "Grade do terreno" });
+  for (let row = 0; row < campGrid.rows; row += 1) {
+    for (let col = 0; col < campGrid.cols; col += 1) {
+      const itemId = campItemAt(row, col);
+      const item = itemId ? campItemMap[itemId] : null;
+      const cell = el("button", {
+        class: `camp-cell${item ? " filled" : ""}`,
+        type: "button",
+        role: "gridcell",
+        "data-row": String(row),
+        "data-col": String(col),
+        "aria-label": item
+          ? `Linha ${row + 1}, coluna ${col + 1}: ${item.label}`
+          : `Linha ${row + 1}, coluna ${col + 1}: vazio`
+      }, item ? [
+        el("span", { class: "camp-token", text: item.code }),
+        el("small", { text: item.label })
+      ] : [
+        el("span", { class: "sr-only", text: "Vazio" })
+      ]);
+      cell.addEventListener("click", () => {
+        if (campState.selected) placeCampItem(campState.selected, row, col);
+        else if (itemId) {
+          campState.selected = itemId;
+          renderCampGame();
+        }
+      });
+      cell.addEventListener("dragover", (event) => event.preventDefault());
+      cell.addEventListener("drop", (event) => {
+        event.preventDefault();
+        const id = event.dataTransfer.getData("text/plain") || campState.selected;
+        if (campItemMap[id]) placeCampItem(id, row, col);
+      });
+      board.appendChild(cell);
+    }
+  }
+  return el("div", { class: "camp-board-wrap" }, [board]);
+}
+
+function renderCampResult() {
+  const scoreText = campState.score === null ? "Ainda nao validado" : `${campState.score} pontos`;
+  const statusText = campState.score === null
+    ? "Monte o terreno e valide para receber orientacoes."
+    : campState.score >= 88
+      ? "Acampamento excelente para inspeção."
+      : campState.score >= 70
+        ? "Boa base. Ajuste os pontos destacados."
+        : "Reorganize as areas criticas antes da inspeção.";
+  const list = el("ul", { class: "camp-feedback" });
+  if (campState.feedback.length) {
+    campState.feedback.forEach((item) => {
+      list.appendChild(el("li", { class: item.ok ? "ok" : "warn", text: item.text }));
+    });
+  } else {
+    list.appendChild(el("li", { text: "Dica: cozinha, lixo, banheiros e fogueira definem boa parte da segurança." }));
+  }
+  return el("div", { class: "camp-result", "aria-live": "polite" }, [
+    el("span", { class: "camp-score-label", text: "Pontuação" }),
+    el("strong", { text: scoreText }),
+    el("p", { text: statusText }),
+    list
+  ]);
+}
+
+function renderCampRanking() {
+  const ranking = loadCampRanking();
+  const list = el("ol", { class: "camp-ranking-list" });
+  if (!ranking.length) {
+    list.appendChild(el("li", { text: "Nenhum resultado salvo neste navegador." }));
+  } else {
+    ranking.forEach((entry) => {
+      list.appendChild(el("li", {}, [
+        el("strong", { text: entry.club }),
+        el("span", { text: `${entry.score} pts` })
+      ]));
+    });
+  }
+  return el("div", { class: "camp-ranking" }, [
+    el("h3", { text: "Ranking local" }),
+    list,
+    el("p", { text: "Salvo apenas neste navegador. Futuramente pode ser ligado ao Firebase." })
+  ]);
+}
+
+function campItemAt(row, col) {
+  const found = Object.entries(campState.placements).find(([, pos]) => pos.row === row && pos.col === col);
+  return found ? found[0] : null;
+}
+
+function placeCampItem(itemId, row, col) {
+  if (!campItemMap[itemId]) return;
+  const previous = campItemAt(row, col);
+  if (previous && previous !== itemId) delete campState.placements[previous];
+  campState.placements[itemId] = { row, col };
+  campState.score = null;
+  campState.feedback = [];
+  const next = campItems.find((item) => !campState.placements[item.id]);
+  campState.selected = next ? next.id : itemId;
+  renderCampGame();
+}
+
+function validateCamp() {
+  const feedback = [];
+  let score = 100;
+  const missing = campItems.filter((item) => !campState.placements[item.id]);
+  if (missing.length) {
+    score -= missing.length * 8;
+    feedback.push({
+      ok: false,
+      text: `${missing.length} area(s) ainda precisam ser posicionadas.`
+    });
+  }
+
+  const rule = (ids, ok, penalty, pass, fail) => {
+    if (ids.some((id) => !campState.placements[id])) return;
+    if (ok()) feedback.push({ ok: true, text: pass });
+    else {
+      score -= penalty;
+      feedback.push({ ok: false, text: fail });
+    }
+  };
+
+  rule(["entrada"], () => campOnBorder(campState.placements.entrada), 8,
+    "Entrada em uma borda do terreno.",
+    "Coloque a entrada em uma das bordas para facilitar acesso e circulação.");
+  rule(["barracas", "fogueira"], () => campDistance("barracas", "fogueira") >= 3, 14,
+    "Barracas mantidas a uma distância segura da fogueira.",
+    "Afaste a fogueira das barracas para reduzir risco de acidente.");
+  rule(["cozinha", "lixo"], () => campDistance("cozinha", "lixo") >= 3, 12,
+    "Cozinha afastada da área de lixo.",
+    "A cozinha nao deve ficar perto do lixo.");
+  rule(["cozinha", "banheiros"], () => campDistance("cozinha", "banheiros") >= 3, 12,
+    "Cozinha afastada dos banheiros.",
+    "Afaste a cozinha dos banheiros para melhorar higiene e inspeção.");
+  rule(["cozinha", "agua"], () => campDistance("cozinha", "agua") <= 2, 8,
+    "Agua bem posicionada para apoiar a cozinha.",
+    "A cozinha precisa ficar mais perto da agua.");
+  rule(["agua", "lixo"], () => campDistance("agua", "lixo") >= 3, 9,
+    "Agua protegida da área de lixo.",
+    "Mantenha a agua longe do lixo.");
+  rule(["agua", "banheiros"], () => campDistance("agua", "banheiros") >= 3, 9,
+    "Agua afastada dos banheiros.",
+    "A area de agua nao deve ficar junto aos banheiros.");
+  rule(["entrada", "enfermaria"], () => campDistance("entrada", "enfermaria") <= 3, 8,
+    "Enfermaria acessivel pela entrada.",
+    "A enfermaria precisa ficar em local de acesso rapido.");
+  rule(["barracas", "lixo"], () => campDistance("barracas", "lixo") >= 3, 8,
+    "Barracas afastadas do lixo.",
+    "Coloque o lixo longe da area de dormir.");
+
+  campState.score = Math.max(0, Math.min(100, score));
+  campState.feedback = feedback;
+  renderCampGame();
+}
+
+function campDistance(first, second) {
+  const a = campState.placements[first];
+  const b = campState.placements[second];
+  if (!a || !b) return Number.POSITIVE_INFINITY;
+  return Math.abs(a.row - b.row) + Math.abs(a.col - b.col);
+}
+
+function campOnBorder(pos) {
+  return pos.row === 0 || pos.col === 0 || pos.row === campGrid.rows - 1 || pos.col === campGrid.cols - 1;
+}
+
+function saveCampScore() {
+  if (campState.score === null) {
+    showToast("Valide o acampamento antes de salvar.");
+    return;
+  }
+  const club = campState.club.trim().slice(0, 24) || "Clube sem nome";
+  const entries = loadCampRanking();
+  entries.push({
+    club,
+    score: campState.score,
+    createdAt: new Date().toISOString()
+  });
+  entries.sort((a, b) => b.score - a.score || new Date(a.createdAt) - new Date(b.createdAt));
+  if (!saveCampRanking(entries)) {
+    showToast("Não foi possível salvar o ranking neste navegador.");
+    return;
+  }
+  showToast("Resultado salvo no ranking local.");
+  renderCampGame();
 }
 
 function showToast(message) {

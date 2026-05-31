@@ -430,6 +430,12 @@ strong {
   cursor: not-allowed;
 }
 
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+  transform: none;
+}
+
 .scroll-indicator {
   align-items: center;
   color: rgba(212, 160, 23, 0.58);
@@ -1529,6 +1535,11 @@ strong {
   max-width: 720px;
 }
 
+.modal-box-camp {
+  max-width: 980px;
+  width: min(100%, 980px);
+}
+
 .modal-close {
   align-items: center;
   background: transparent;
@@ -1755,6 +1766,250 @@ strong {
   text-decoration: line-through;
 }
 
+.camp-game {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(260px, 0.86fr) minmax(420px, 1.3fr);
+}
+
+.camp-panel,
+.camp-result,
+.camp-ranking {
+  background: rgba(10, 5, 5, 0.32);
+  border: 1px solid rgba(212, 160, 23, 0.16);
+  border-radius: 4px;
+}
+
+.camp-panel {
+  padding: 1rem;
+}
+
+.camp-help {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.camp-items {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.camp-item {
+  align-items: center;
+  background: rgba(139, 0, 0, 0.12);
+  border: 1px solid rgba(212, 160, 23, 0.22);
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: grab;
+  display: grid;
+  gap: 0.15rem 0.7rem;
+  grid-template-columns: auto 1fr;
+  min-height: 58px;
+  padding: 0.65rem;
+  text-align: left;
+  width: 100%;
+}
+
+.camp-item:active {
+  cursor: grabbing;
+}
+
+.camp-item.selected,
+.camp-item:focus-visible {
+  border-color: var(--gold);
+  color: var(--text-light);
+  outline: none;
+}
+
+.camp-item.placed {
+  background: rgba(0, 110, 0, 0.12);
+}
+
+.camp-code,
+.camp-token {
+  align-items: center;
+  background: linear-gradient(135deg, var(--crimson), var(--crimson-bright));
+  border: 1px solid var(--gold);
+  color: var(--gold-light);
+  display: inline-flex;
+  font-family: "Cinzel", serif;
+  font-size: 0.68rem;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.camp-item strong {
+  color: var(--gold-pale);
+  font-family: "Cinzel", serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.camp-item small {
+  color: rgba(245, 237, 216, 0.62);
+  font-size: 0.74rem;
+  grid-column: 2;
+  line-height: 1.35;
+}
+
+.camp-actions {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.camp-actions .btn,
+.camp-actions .link-button {
+  width: 100%;
+}
+
+.camp-name {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(212, 160, 23, 0.28);
+  border-radius: 3px;
+  color: var(--text-light);
+  min-height: 44px;
+  padding: 0 0.85rem;
+  width: 100%;
+}
+
+.camp-name:focus {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.camp-ranking {
+  grid-column: 1;
+  margin-top: 0;
+  padding: 0.9rem;
+}
+
+.camp-ranking h3,
+.camp-score-label {
+  color: var(--gold);
+  font-family: "Cinzel", serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.camp-ranking-list {
+  color: var(--text-muted);
+  display: grid;
+  gap: 0.45rem;
+  list-style-position: inside;
+  margin: 0.75rem 0;
+}
+
+.camp-ranking-list li {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.camp-ranking-list strong {
+  color: var(--gold-pale);
+}
+
+.camp-ranking p {
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.camp-field {
+  display: grid;
+  gap: 1rem;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.camp-board-wrap {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.camp-board {
+  --camp-cell: clamp(48px, 8.4vw, 72px);
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(6, var(--camp-cell));
+  width: max-content;
+}
+
+.camp-cell {
+  align-content: center;
+  background:
+    linear-gradient(135deg, rgba(70, 35, 12, 0.34), rgba(20, 8, 4, 0.48)),
+    rgba(90, 0, 0, 0.12);
+  border: 1px solid rgba(212, 160, 23, 0.2);
+  border-radius: 3px;
+  color: rgba(245, 237, 216, 0.52);
+  cursor: pointer;
+  display: grid;
+  gap: 0.28rem;
+  height: var(--camp-cell);
+  justify-items: center;
+  min-width: var(--camp-cell);
+  padding: 0.25rem;
+}
+
+.camp-cell:hover,
+.camp-cell:focus-visible {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.camp-cell.filled {
+  background: linear-gradient(180deg, rgba(139, 0, 0, 0.26), rgba(90, 0, 0, 0.14));
+}
+
+.camp-cell small {
+  color: rgba(245, 237, 216, 0.72);
+  font-size: clamp(0.52rem, 1.4vw, 0.64rem);
+  line-height: 1;
+  text-align: center;
+}
+
+.camp-result {
+  padding: 1rem;
+}
+
+.camp-result strong {
+  color: var(--gold-light);
+  display: block;
+  font-family: "Cinzel Decorative", serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1;
+  margin: 0.3rem 0 0.35rem;
+}
+
+.camp-feedback {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin-top: 0.85rem;
+}
+
+.camp-feedback li {
+  border-left: 2px solid rgba(212, 160, 23, 0.28);
+  color: var(--text-muted);
+  line-height: 1.45;
+  padding-left: 0.7rem;
+}
+
+.camp-feedback li.ok {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.camp-feedback li.warn {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
 .toast {
   background: rgba(10, 5, 5, 0.95);
   border: 1px solid var(--gold);
@@ -1937,6 +2192,51 @@ strong {
 
   .modal-box {
     padding: 1.6rem 1rem;
+  }
+
+  .camp-game {
+    grid-template-columns: 1fr;
+  }
+
+  .camp-field,
+  .camp-ranking {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .camp-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .camp-item {
+    gap: 0.1rem 0.55rem;
+    min-height: 52px;
+    padding: 0.55rem;
+  }
+
+  .camp-code,
+  .camp-token {
+    height: 30px;
+    width: 30px;
+  }
+
+  .camp-item strong {
+    font-size: 0.68rem;
+  }
+
+  .camp-item small {
+    display: none;
+  }
+
+  .camp-board {
+    --camp-cell: clamp(40px, 12vw, 48px);
+    gap: 4px;
+  }
+
+  .camp-ranking-list li {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.15rem;
   }
 
   .quiz-nav {
