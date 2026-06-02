@@ -956,7 +956,8 @@ function renderCampGame() {
   target.replaceChildren(
     el("div", { class: "camp-game" }, [
       el("section", { class: "camp-panel", "aria-label": "Areas do acampamento" }, [
-        el("p", { class: "camp-help", text: "Escolha uma area e toque no terreno. No computador, tambem da para arrastar." }),
+        el("p", { class: "camp-help", text: "Escolha uma area e toque no terreno. Para mover, toque no item ja colocado e escolha outra celula." }),
+        renderCampSummary(),
         renderCampItems(),
         renderCampActions()
       ]),
@@ -967,6 +968,14 @@ function renderCampGame() {
       renderCampRanking()
     ])
   );
+}
+
+function renderCampSummary() {
+  const placedCount = Object.keys(campState.placements).length;
+  return el("div", { class: "camp-summary" }, [
+    el("strong", { text: `${placedCount}/${campItems.length}` }),
+    el("span", { text: "areas no mapa" })
+  ]);
 }
 
 function renderCampItems() {
@@ -1048,8 +1057,9 @@ function renderCampBoard() {
       const itemId = campItemAt(row, col);
       const item = itemId ? campItemMap[itemId] : null;
       const cell = el("button", {
-        class: `camp-cell${item ? " filled" : ""}`,
+        class: `camp-cell${item ? " filled" : ""}${itemId === campState.selected ? " selected" : ""}`,
         type: "button",
+        draggable: item ? "true" : "false",
         role: "gridcell",
         "data-row": String(row),
         "data-col": String(col),
@@ -1063,11 +1073,17 @@ function renderCampBoard() {
         el("span", { class: "sr-only", text: "Vazio" })
       ]);
       cell.addEventListener("click", () => {
-        if (campState.selected) placeCampItem(campState.selected, row, col);
-        else if (itemId) {
+        if (itemId) {
           campState.selected = itemId;
           renderCampGame();
+          return;
         }
+        if (campState.selected) placeCampItem(campState.selected, row, col);
+      });
+      cell.addEventListener("dragstart", (event) => {
+        if (!itemId) return;
+        event.dataTransfer.setData("text/plain", itemId);
+        campState.selected = itemId;
       });
       cell.addEventListener("dragover", (event) => event.preventDefault());
       cell.addEventListener("drop", (event) => {
@@ -1133,13 +1149,19 @@ function campItemAt(row, col) {
 
 function placeCampItem(itemId, row, col) {
   if (!campItemMap[itemId]) return;
+  const wasPlaced = Boolean(campState.placements[itemId]);
   const previous = campItemAt(row, col);
-  if (previous && previous !== itemId) delete campState.placements[previous];
+  if (previous && previous !== itemId) {
+    campState.selected = previous;
+    showToast("Essa celula ja esta ocupada. Escolha uma area livre para mover.");
+    renderCampGame();
+    return;
+  }
   campState.placements[itemId] = { row, col };
   campState.score = null;
   campState.feedback = [];
   const next = campItems.find((item) => !campState.placements[item.id]);
-  campState.selected = next ? next.id : itemId;
+  campState.selected = wasPlaced || !next ? itemId : next.id;
   renderCampGame();
 }
 

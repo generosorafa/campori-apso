@@ -1536,8 +1536,9 @@ strong {
 }
 
 .modal-box-camp {
-  max-width: 980px;
-  width: min(100%, 980px);
+  max-height: min(94vh, 940px);
+  max-width: 1380px;
+  width: min(96vw, 1380px);
 }
 
 .modal-close {
@@ -1768,8 +1769,8 @@ strong {
 
 .camp-game {
   display: grid;
-  gap: 1.25rem;
-  grid-template-columns: minmax(280px, 0.86fr) minmax(460px, 1.3fr);
+  gap: 1.15rem;
+  grid-template-columns: minmax(390px, 0.78fr) minmax(560px, 1.35fr);
 }
 
 .camp-panel,
@@ -1782,17 +1783,46 @@ strong {
 }
 
 .camp-panel {
-  padding: 1rem;
+  align-content: start;
+  display: grid;
+  padding: 0.9rem;
 }
 
 .camp-help {
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+  font-size: 0.86rem;
+  margin-bottom: 0.75rem;
+}
+
+.camp-summary {
+  align-items: center;
+  background: #120a04;
+  border: 2px solid #6f461f;
+  color: var(--text-muted);
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+  padding: 0.45rem 0.65rem;
+}
+
+.camp-summary strong {
+  color: var(--gold-light);
+  font-family: "Cinzel Decorative", serif;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.camp-summary span {
+  font-family: "Cinzel", serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .camp-items {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .camp-item {
@@ -1803,11 +1833,11 @@ strong {
   color: var(--text-muted);
   cursor: grab;
   display: grid;
-  gap: 0.15rem 0.7rem;
-  grid-template-columns: auto 1fr;
-  min-height: 58px;
-  padding: 0.65rem;
-  text-align: left;
+  gap: 0.3rem;
+  justify-items: center;
+  min-height: 82px;
+  padding: 0.55rem;
+  text-align: center;
   width: 100%;
 }
 
@@ -1828,16 +1858,27 @@ strong {
   border-color: #5f8f37;
 }
 
+.camp-item.placed::after {
+  color: #94c96b;
+  content: "No mapa";
+  font-family: "Cinzel", serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .camp-item strong {
   color: var(--gold-pale);
   font-family: "Cinzel", serif;
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
   text-transform: uppercase;
 }
 
 .camp-item small {
   color: rgba(245, 237, 216, 0.62);
+  display: none;
   font-size: 0.74rem;
   grid-column: 2;
   line-height: 1.35;
@@ -2031,11 +2072,16 @@ strong {
 .camp-actions {
   display: grid;
   gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 1rem;
 }
 
-.camp-actions .btn,
+.camp-actions .camp-name,
 .camp-actions .link-button {
+  grid-column: 1 / -1;
+}
+
+.camp-actions .btn {
   width: 100%;
 }
 
@@ -2108,8 +2154,11 @@ strong {
   background-size: 14px 14px;
   border: 4px solid #8a5124;
   box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.32);
+  justify-self: center;
+  max-width: 100%;
   overflow-x: auto;
   padding: 0.55rem;
+  width: max-content;
 }
 
 .camp-board {
@@ -2143,6 +2192,13 @@ strong {
   border-color: #f0c040;
   box-shadow: inset 0 0 0 2px rgba(240, 192, 64, 0.22);
   outline: none;
+}
+
+.camp-cell.selected {
+  border-color: #f0c040;
+  box-shadow:
+    inset 0 0 0 2px rgba(240, 192, 64, 0.28),
+    0 0 0 2px rgba(240, 192, 64, 0.22);
 }
 
 .camp-cell.filled {
@@ -2417,6 +2473,10 @@ strong {
 
   .camp-item small {
     display: none;
+  }
+
+  .camp-actions {
+    grid-template-columns: 1fr;
   }
 
   .camp-board {
