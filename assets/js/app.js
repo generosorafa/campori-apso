@@ -6,6 +6,7 @@ const eventDate = new Date("2026-09-04T14:00:00-03:00");
 const checklistKey = "campori-apso-checklist-v2";
 const campRankingKey = "campori-apso-camp-ranking-v1";
 const runnerRecordKey = "campori-apso-runner-record-v1";
+const packRecordKey = "campori-apso-pack-record-v1";
 
 const checklistData = {
   docs: [
@@ -277,6 +278,46 @@ const runnerCollectibles = [
   { type: "map", label: "Mapa", row: 3, col: 6, points: 85, width: 42, height: 42 },
   { type: "star", label: "Estrela", row: 3, col: 7, points: 120, width: 42, height: 42 }
 ];
+const packGridSize = 8;
+const packRoundSeconds = 10;
+const packMaxMistakes = 10;
+const packMaxLevel = 12;
+const packItems = [
+  { type: "bible", label: "Biblia", good: true, row: 0, col: 0 },
+  { type: "canteen", label: "Cantil", good: true, row: 0, col: 1 },
+  { type: "flashlight", label: "Lanterna", good: true, row: 0, col: 2 },
+  { type: "sleeping", label: "Saco de dormir", good: true, row: 0, col: 3 },
+  { type: "tent", label: "Barraca", good: true, row: 0, col: 4 },
+  { type: "firstaid", label: "Primeiros socorros", good: true, row: 0, col: 5 },
+  { type: "rope", label: "Corda", good: true, row: 0, col: 6 },
+  { type: "compass", label: "Bussola", good: true, row: 0, col: 7 },
+  { type: "map", label: "Mapa", good: true, row: 1, col: 0 },
+  { type: "whistle", label: "Apito", good: true, row: 1, col: 1 },
+  { type: "cap", label: "Bone", good: true, row: 1, col: 2 },
+  { type: "boots", label: "Botas", good: true, row: 1, col: 3 },
+  { type: "raincoat", label: "Capa de chuva", good: true, row: 1, col: 4 },
+  { type: "backpack", label: "Mochila", good: true, row: 1, col: 5 },
+  { type: "messkit", label: "Kit refeicao", good: true, row: 1, col: 6 },
+  { type: "sunscreen", label: "Protetor solar", good: true, row: 1, col: 7 },
+  { type: "gamepad", label: "Controle de jogo", good: false, row: 2, col: 0 },
+  { type: "glass", label: "Garrafa de vidro", good: false, row: 2, col: 1 },
+  { type: "firework", label: "Fogos", good: false, row: 2, col: 2 },
+  { type: "knife", label: "Faca solta", good: false, row: 2, col: 3 },
+  { type: "meat", label: "Carne sem gelo", good: false, row: 2, col: 4 },
+  { type: "speaker", label: "Caixa de som", good: false, row: 2, col: 5 },
+  { type: "laptop", label: "Notebook", good: false, row: 2, col: 6 },
+  { type: "dryer", label: "Secador", good: false, row: 2, col: 7 },
+  { type: "heel", label: "Salto alto", good: false, row: 3, col: 0 },
+  { type: "drone", label: "Drone", good: false, row: 3, col: 1 },
+  { type: "perfume", label: "Perfume de vidro", good: false, row: 3, col: 2 },
+  { type: "fuel", label: "Combustivel", good: false, row: 3, col: 3 },
+  { type: "can", label: "Lata aberta", good: false, row: 3, col: 4 },
+  { type: "skate", label: "Skate", good: false, row: 3, col: 5 },
+  { type: "tv", label: "Televisao", good: false, row: 3, col: 6 },
+  { type: "headphones", label: "Fone grande", good: false, row: 3, col: 7 }
+];
+const packGoodItems = packItems.filter((item) => item.good);
+const packBadItems = packItems.filter((item) => !item.good);
 
 let activeModal = null;
 let lastFocus = null;
@@ -284,6 +325,7 @@ let quizState = { index: 0, score: 0, answered: false, data: quizData, target: "
 let triviaState = { index: 0, score: 0, answered: false, data: triviaData, target: "triviaContent" };
 let campState = createCampState();
 let runnerState = createRunnerState();
+let packState = createPackState();
 let wordGrid = [];
 let wordPlaced = [];
 let wordFound = [];
@@ -625,6 +667,7 @@ function openModal(id) {
 function closeModal(modal = activeModal) {
   if (!modal) return;
   if (modal.id === "runnerModal") stopRunnerGame();
+  if (modal.id === "packModal") stopPackGame();
   modal.hidden = true;
   activeModal = null;
   document.body.classList.remove("modal-open");
@@ -698,6 +741,11 @@ function initGames() {
       runnerState = createRunnerState(runnerState.character);
       openModal("runnerModal");
       renderRunnerGame();
+    }
+    if (game.dataset.game === "pack") {
+      packState = createPackState();
+      openModal("packModal");
+      renderPackGame();
     }
   });
 }
@@ -1821,6 +1869,322 @@ function randomRunnerRange(min, max) {
 
 function runnerBoxesOverlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function createPackState() {
+  const grid = createPackGrid(1);
+  return {
+    status: "ready",
+    score: 0,
+    level: 1,
+    nextLevel: 1,
+    mistakes: 0,
+    hits: 0,
+    totalHits: 0,
+    targets: grid.filter((cell) => cell.item.good).length,
+    timeLeft: packRoundSeconds,
+    grid,
+    record: loadPackRecord(),
+    raf: 0,
+    roundDelay: 0,
+    lastTime: 0,
+    messageTitle: "Mochila pronta",
+    messageText: "Quando começar, toque apenas nos itens apropriados para acampamento."
+  };
+}
+
+function loadPackRecord() {
+  try {
+    const data = JSON.parse(localStorage.getItem(packRecordKey) || "{}");
+    return {
+      score: Math.max(0, Math.floor(Number(data.score) || 0)),
+      level: Math.max(0, Math.floor(Number(data.level) || 0)),
+      hits: Math.max(0, Math.floor(Number(data.hits) || 0))
+    };
+  } catch {
+    return { score: 0, level: 0, hits: 0 };
+  }
+}
+
+function savePackRecord(record) {
+  try {
+    localStorage.setItem(packRecordKey, JSON.stringify({
+      score: Math.max(0, Math.floor(record.score) || 0),
+      level: Math.max(0, Math.floor(record.level) || 0),
+      hits: Math.max(0, Math.floor(record.hits) || 0)
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function renderPackGame() {
+  const target = document.getElementById("packContent");
+  if (!target) return;
+  target.addEventListener("contextmenu", preventRunnerSelection);
+  target.addEventListener("selectstart", preventRunnerSelection);
+
+  target.replaceChildren(
+    el("div", { class: "pack-game" }, [
+      renderPackHud(),
+      renderPackBoard(),
+      renderPackActions(),
+      renderPackMessage()
+    ])
+  );
+  updatePackHud();
+}
+
+function renderPackHud() {
+  return el("div", { class: "pack-hud" }, [
+    el("div", { class: "pack-stat" }, [
+      el("span", { text: "Pontos" }),
+      el("strong", { text: String(packState.score), "data-pack-score": "true" })
+    ]),
+    el("div", { class: "pack-stat" }, [
+      el("span", { text: "Nível" }),
+      el("strong", { text: `${packState.level}/${packMaxLevel}`, "data-pack-level": "true" })
+    ]),
+    el("div", { class: "pack-stat pack-stat-time" }, [
+      el("span", { text: "Tempo" }),
+      el("strong", { text: `${Math.ceil(packState.timeLeft)}s`, "data-pack-time": "true" }),
+      el("i", { class: "pack-time-track", "aria-hidden": "true" }, [
+        el("b", { "data-pack-time-bar": "true" })
+      ])
+    ]),
+    el("div", { class: "pack-stat" }, [
+      el("span", { text: "Erros" }),
+      el("strong", { text: `${packState.mistakes}/${packMaxMistakes}`, "data-pack-mistakes": "true" })
+    ]),
+    el("div", { class: "pack-stat" }, [
+      el("span", { text: "Recorde" }),
+      el("strong", { text: String(packState.record.score), "data-pack-record": "true" }),
+      el("small", { text: `Nível ${packState.record.level}`, "data-pack-record-level": "true" })
+    ])
+  ]);
+}
+
+function renderPackBoard() {
+  const board = el("div", { class: "pack-board", role: "grid", "aria-label": "Objetos da Mochila do Campori" });
+  packState.grid.forEach((cell, index) => {
+    const resultClass = cell.result ? ` pack-cell-${cell.result}` : "";
+    const button = el("button", {
+      class: `pack-cell${cell.clicked ? " pack-cell-clicked" : ""}${resultClass}`,
+      type: "button",
+      "data-pack-cell": String(index),
+      "aria-label": `${cell.item.label}: ${cell.item.good ? "apropriado" : "inapropriado"}`,
+      disabled: packState.status !== "running" || cell.clicked ? "true" : null
+    }, [
+      renderPackIcon(cell.item),
+      el("span", { class: "pack-cell-label", text: cell.item.label })
+    ]);
+    button.addEventListener("click", () => selectPackCell(index));
+    board.appendChild(button);
+  });
+  return board;
+}
+
+function renderPackIcon(item) {
+  return el("span", {
+    class: `pack-sprite pack-row-${item.row} pack-col-${item.col}`,
+    "aria-hidden": "true"
+  });
+}
+
+function renderPackActions() {
+  const primaryText = packState.status === "running"
+    ? "Reiniciar"
+    : packState.status === "between"
+      ? "Próximo nível"
+      : packState.status === "over"
+        ? "Jogar novamente"
+        : "Começar";
+  const primary = el("button", { class: "btn btn-primary", type: "button", text: primaryText });
+  primary.addEventListener("click", () => {
+    if (packState.status === "between") {
+      advancePackRound();
+      return;
+    }
+    startPackGame();
+  });
+
+  return el("div", { class: "pack-actions" }, [
+    primary,
+    el("span", { text: `${packState.targets} itens certos nesta tela`, "data-pack-targets": "true" })
+  ]);
+}
+
+function renderPackMessage() {
+  return el("div", { class: "pack-message", "aria-live": "polite" }, [
+    el("strong", { text: packState.messageTitle, "data-pack-message-title": "true" }),
+    el("span", { text: packState.messageText, "data-pack-message-text": "true" })
+  ]);
+}
+
+function startPackGame() {
+  stopPackGame();
+  packState = createPackState();
+  packState.status = "running";
+  startPackRound();
+}
+
+function startPackRound() {
+  stopPackGame();
+  packState.grid = createPackGrid(packState.level);
+  packState.targets = packState.grid.filter((cell) => cell.item.good).length;
+  packState.hits = 0;
+  packState.timeLeft = packRoundSeconds;
+  packState.lastTime = performance.now();
+  packState.status = "running";
+  packState.messageTitle = `Nível ${packState.level}`;
+  packState.messageText = `Cada item certo vale ${packState.level} ponto${packState.level > 1 ? "s" : ""}.`;
+  renderPackGame();
+  packState.raf = requestAnimationFrame(packLoop);
+}
+
+function stopPackGame() {
+  if (packState.raf) cancelAnimationFrame(packState.raf);
+  if (packState.roundDelay) window.clearTimeout(packState.roundDelay);
+  packState.raf = 0;
+  packState.roundDelay = 0;
+}
+
+function packLoop(timestamp) {
+  if (packState.status !== "running") return;
+  const dt = Math.min(0.25, Math.max(0, (timestamp - packState.lastTime) / 1000 || 0));
+  packState.lastTime = timestamp;
+  packState.timeLeft = Math.max(0, packState.timeLeft - dt);
+  updatePackHud();
+
+  if (packState.timeLeft <= 0) {
+    finishPackRound("time");
+    return;
+  }
+  packState.raf = requestAnimationFrame(packLoop);
+}
+
+function selectPackCell(index) {
+  if (packState.status !== "running") return;
+  const cell = packState.grid[index];
+  if (!cell || cell.clicked) return;
+
+  cell.clicked = true;
+  if (cell.item.good) {
+    cell.result = "good";
+    packState.score += packState.level;
+    packState.hits += 1;
+    packState.totalHits += 1;
+    packState.messageTitle = "Item certo";
+    packState.messageText = `${cell.item.label} entrou na mochila. +${packState.level}`;
+  } else {
+    cell.result = "bad";
+    packState.mistakes += 1;
+    packState.messageTitle = "Item errado";
+    packState.messageText = `${cell.item.label} não deveria ir para o acampamento.`;
+  }
+
+  if (packState.mistakes >= packMaxMistakes) {
+    finishPackGame("mistakes");
+    return;
+  }
+  if (packState.hits >= packState.targets) {
+    finishPackRound("clear");
+    return;
+  }
+
+  renderPackGame();
+}
+
+function finishPackRound(reason) {
+  if (packState.status !== "running") return;
+  stopPackGame();
+  const cleared = reason === "clear";
+  if (cleared) {
+    const bonus = Math.ceil(packState.timeLeft) * packState.level;
+    packState.score += bonus;
+    packState.messageTitle = "Mochila conferida";
+    packState.messageText = `Tela limpa. Bônus de tempo: +${bonus}.`;
+  } else {
+    packState.messageTitle = "Tempo encerrado";
+    packState.messageText = `Você encontrou ${packState.hits}/${packState.targets} itens certos.`;
+  }
+
+  if (packState.level >= packMaxLevel) {
+    finishPackGame("complete");
+    return;
+  }
+
+  packState.status = "between";
+  packState.nextLevel = packState.level + 1;
+  renderPackGame();
+  packState.roundDelay = window.setTimeout(advancePackRound, 1150);
+}
+
+function advancePackRound() {
+  if (packState.status !== "between") return;
+  stopPackGame();
+  packState.level = Math.min(packMaxLevel, packState.nextLevel || packState.level + 1);
+  startPackRound();
+}
+
+function finishPackGame(reason) {
+  stopPackGame();
+  packState.status = "over";
+  const completed = reason === "complete";
+  let saved = true;
+  if (packState.score > packState.record.score ||
+    (packState.score === packState.record.score && packState.level > packState.record.level)) {
+    packState.record = { score: packState.score, level: packState.level, hits: packState.totalHits };
+    saved = savePackRecord(packState.record);
+  }
+  packState.messageTitle = completed ? "Mochila completa" : "Fim de jogo";
+  packState.messageText = completed
+    ? `Você chegou ao nível ${packState.level} com ${packState.score} pontos.`
+    : `Você usou os ${packMaxMistakes} erros. Pontuação: ${packState.score}.`;
+  if (!saved) packState.messageText += " O navegador não permitiu salvar o recorde.";
+  renderPackGame();
+}
+
+function updatePackHud() {
+  const score = document.querySelector("[data-pack-score]");
+  const level = document.querySelector("[data-pack-level]");
+  const time = document.querySelector("[data-pack-time]");
+  const timeBar = document.querySelector("[data-pack-time-bar]");
+  const mistakes = document.querySelector("[data-pack-mistakes]");
+  const record = document.querySelector("[data-pack-record]");
+  const recordLevel = document.querySelector("[data-pack-record-level]");
+  const targets = document.querySelector("[data-pack-targets]");
+
+  if (score) score.textContent = String(packState.score);
+  if (level) level.textContent = `${packState.level}/${packMaxLevel}`;
+  if (time) time.textContent = `${Math.ceil(packState.timeLeft)}s`;
+  if (timeBar) timeBar.style.width = `${Math.max(0, Math.min(100, (packState.timeLeft / packRoundSeconds) * 100))}%`;
+  if (mistakes) mistakes.textContent = `${packState.mistakes}/${packMaxMistakes}`;
+  if (record) record.textContent = String(packState.record.score);
+  if (recordLevel) recordLevel.textContent = `Nível ${packState.record.level}`;
+  if (targets) targets.textContent = `${packState.targets} itens certos nesta tela`;
+}
+
+function createPackGrid(level) {
+  const goodCount = Math.max(18, 31 - Math.floor((level - 1) * 1.15));
+  const badCount = packGridSize * packGridSize - goodCount;
+  const badPool = level < 4 ? packBadItems.slice(0, 8) : level < 8 ? packBadItems.slice(0, 12) : packBadItems;
+  const cells = [];
+  for (let index = 0; index < goodCount; index += 1) cells.push({ item: runnerPick(packGoodItems) });
+  for (let index = 0; index < badCount; index += 1) cells.push({ item: runnerPick(badPool) });
+
+  for (let index = cells.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    [cells[index], cells[swap]] = [cells[swap], cells[index]];
+  }
+
+  return cells.map((cell, index) => ({
+    id: index,
+    item: cell.item,
+    clicked: false,
+    result: ""
+  }));
 }
 
 function showToast(message) {
