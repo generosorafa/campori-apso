@@ -3431,7 +3431,7 @@ strong {
 }
 
 .pack-sprite {
-  background-image: url("../img/mochila-items.svg");
+  background-image: url("../img/mochila-items.png");
   background-repeat: no-repeat;
   background-size: 800% 400%;
   display: block;
