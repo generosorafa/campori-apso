@@ -3119,6 +3119,69 @@ strong {
   width: 6px;
 }
 
+.runner-sprite {
+  background-image: url("../img/runner-sprites.png");
+  background-position: var(--sprite-x, 0) var(--sprite-y, 0);
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.runner-sprite::before,
+.runner-sprite::after {
+  content: none;
+  display: none;
+}
+
+.runner-avatar {
+  background-size: 432px 216px;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.36));
+  height: 54px;
+  width: 54px;
+}
+
+.runner-avatar-boy {
+  --sprite-x: 0;
+  --sprite-y: 0;
+}
+
+.runner-avatar-girl {
+  --sprite-x: 0;
+  --sprite-y: -54px;
+}
+
+.runner-player {
+  --sprite-x: 0;
+  --sprite-y: 0;
+  background-size: 656px 328px;
+  border: 0;
+  bottom: 42px;
+  box-shadow: none;
+  clip-path: none;
+  display: block;
+  filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.35));
+  height: 82px;
+  left: 64px;
+  overflow: visible;
+  position: absolute;
+  transform-origin: bottom center;
+  width: 82px;
+  z-index: 10;
+}
+
+.runner-player i {
+  display: none;
+}
+
+.runner-entity {
+  background-color: transparent;
+  background-size: 512px 256px;
+  border: 0;
+  box-shadow: none;
+  clip-path: none;
+  filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.4));
+  overflow: visible;
+}
+
 .runner-actions {
   display: flex;
   flex-wrap: wrap;

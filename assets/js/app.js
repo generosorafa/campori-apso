@@ -256,16 +256,24 @@ const runnerCharacters = [
   { id: "girl", label: "Desbravadora" }
 ];
 const runnerObstacles = [
-  { type: "log", label: "Tronco", width: 50, height: 24 },
-  { type: "backpack", label: "Mochila", width: 38, height: 36 },
-  { type: "tent", label: "Barraca baixa", width: 54, height: 38 },
-  { type: "puddle", label: "Poca", width: 54, height: 18 }
+  { type: "log", label: "Tronco", row: 2, col: 0, width: 52, height: 30 },
+  { type: "tent", label: "Barraca baixa", row: 2, col: 1, width: 54, height: 42 },
+  { type: "backpack", label: "Mochila", row: 2, col: 2, width: 42, height: 50 },
+  { type: "puddle", label: "Poca", row: 2, col: 3, width: 54, height: 18 },
+  { type: "fire", label: "Fogueira", row: 2, col: 4, width: 46, height: 50 },
+  { type: "crate", label: "Caixa", row: 2, col: 5, width: 50, height: 54 },
+  { type: "rope", label: "Corda", row: 2, col: 6, width: 54, height: 36 },
+  { type: "rocks", label: "Pedras", row: 2, col: 7, width: 54, height: 32 }
 ];
 const runnerCollectibles = [
-  { type: "scarf", label: "Lenco", points: 80, width: 34, height: 30 },
-  { type: "bible", label: "Biblia", points: 100, width: 34, height: 36 },
-  { type: "canteen", label: "Cantil", points: 70, width: 34, height: 34 },
-  { type: "badge", label: "Especialidade", points: 120, width: 32, height: 34 }
+  { type: "scarf", label: "Lenco", row: 3, col: 0, points: 90, width: 44, height: 48 },
+  { type: "bible", label: "Biblia", row: 3, col: 1, points: 100, width: 42, height: 48 },
+  { type: "canteen", label: "Cantil", row: 3, col: 2, points: 70, width: 38, height: 42 },
+  { type: "badge", label: "Especialidade", row: 3, col: 3, points: 130, width: 38, height: 38 },
+  { type: "compass", label: "Bussola", row: 3, col: 4, points: 80, width: 42, height: 42 },
+  { type: "flashlight", label: "Lanterna", row: 3, col: 5, points: 70, width: 42, height: 34 },
+  { type: "map", label: "Mapa", row: 3, col: 6, points: 85, width: 42, height: 42 },
+  { type: "star", label: "Estrela", row: 3, col: 7, points: 120, width: 42, height: 42 }
 ];
 
 let activeModal = null;
@@ -1434,35 +1442,15 @@ function renderRunnerPower() {
 }
 
 function renderRunnerAvatar(character) {
-  return el("span", { class: `runner-avatar runner-avatar-${character}`, "aria-hidden": "true" }, [
-    el("i", { class: "runner-avatar-head" }),
-    el("i", { class: "runner-avatar-hair" }),
-    el("i", { class: "runner-avatar-face" }),
-    el("i", { class: "runner-avatar-body" }),
-    el("i", { class: "runner-avatar-scarf" }),
-    el("i", { class: "runner-avatar-belt" }),
-    el("i", { class: "runner-avatar-leg runner-avatar-leg-a" }),
-    el("i", { class: "runner-avatar-leg runner-avatar-leg-b" })
-  ]);
+  return el("span", { class: `runner-sprite runner-avatar runner-avatar-${character}`, "aria-hidden": "true" });
 }
 
 function renderRunnerPlayer() {
   return el("span", {
-    class: `runner-player runner-player-${runnerState.character}`,
+    class: `runner-sprite runner-player runner-player-${runnerState.character}`,
     "data-runner-player": "true",
     "aria-hidden": "true"
-  }, [
-    el("i", { class: "runner-player-head" }),
-    el("i", { class: "runner-player-hair" }),
-    el("i", { class: "runner-player-face" }),
-    el("i", { class: "runner-player-body" }),
-    el("i", { class: "runner-player-scarf" }),
-    el("i", { class: "runner-player-backpack" }),
-    el("i", { class: "runner-player-arm runner-player-arm-a" }),
-    el("i", { class: "runner-player-arm runner-player-arm-b" }),
-    el("i", { class: "runner-player-leg runner-player-leg-a" }),
-    el("i", { class: "runner-player-leg runner-player-leg-b" })
-  ]);
+  });
 }
 
 function startRunnerGame() {
@@ -1530,6 +1518,7 @@ function runnerLoop(timestamp) {
   checkRunnerCollisions();
   if (runnerState.status !== "running") return;
 
+  updateRunnerPlayerFrame();
   updateRunnerHud();
   runnerState.raf = requestAnimationFrame(runnerLoop);
 }
@@ -1592,14 +1581,16 @@ function spawnRunnerEntity(kind) {
     x: stage.clientWidth + randomRunnerRange(18, 70),
     y: isObstacle ? 0 : -randomRunnerRange(82, 130),
     node: el("span", {
-      class: `runner-entity ${isObstacle ? "runner-obstacle" : "runner-collectible"} runner-${kind}-${item.type}`,
+      class: `runner-sprite runner-entity ${isObstacle ? "runner-obstacle" : "runner-collectible"} runner-${kind}-${item.type}`,
       "aria-hidden": "true"
     }),
     dead: false
   };
   runnerState.entityId += 1;
-  entity.node.style.width = `${width}px`;
-  entity.node.style.height = `${height}px`;
+  entity.node.style.width = "64px";
+  entity.node.style.height = "64px";
+  entity.node.style.setProperty("--sprite-x", `${item.col * -64}px`);
+  entity.node.style.setProperty("--sprite-y", `${item.row * -64}px`);
   track.appendChild(entity.node);
   runnerState.entities.push(entity);
   positionRunnerEntity(entity);
@@ -1679,6 +1670,7 @@ function runnerGameOver() {
   const player = document.querySelector("[data-runner-player]");
   if (player) player.classList.add("runner-player-hit");
 
+  updateRunnerPlayerFrame(player);
   updateRunnerHud();
   updateRunnerPower();
   updateRunnerMessage(title, text);
@@ -1687,7 +1679,19 @@ function runnerGameOver() {
 function updateRunnerPlayer() {
   const player = document.querySelector("[data-runner-player]");
   if (!player) return;
+  updateRunnerPlayerFrame(player);
   player.style.transform = `translateY(${Math.round(runnerState.playerY)}px)`;
+}
+
+function updateRunnerPlayerFrame(player = document.querySelector("[data-runner-player]")) {
+  if (!player) return;
+  const row = runnerState.character === "girl" ? 1 : 0;
+  let col = 0;
+  if (runnerState.status === "over") col = 7;
+  else if (!runnerState.onGround) col = runnerState.velocityY < 0 ? 4 : 5;
+  else if (runnerState.status === "running") col = 1 + (Math.floor(runnerState.score / 12) % 3);
+  player.style.setProperty("--sprite-x", `${col * -82}px`);
+  player.style.setProperty("--sprite-y", `${row * -82}px`);
 }
 
 function updateRunnerHud() {
