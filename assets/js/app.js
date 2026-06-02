@@ -235,17 +235,20 @@ const triviaData = [
 ];
 
 const wordSearchWords = ["DESEJADO", "CAMPORI", "DESBRAVADOR", "APSO", "CORAGEM", "AVENTURA", "UNIFORME", "LIDERANCA"];
-const campGrid = { rows: 6, cols: 6 };
+const campGrid = { rows: 7, cols: 7 };
 const campItems = [
-  { id: "entrada", label: "Entrada", code: "EN", hint: "Deve ficar em uma borda do terreno." },
-  { id: "barracas", label: "Barracas", code: "BA", hint: "Precisam ficar longe da fogueira e da area de lixo." },
-  { id: "cozinha", label: "Cozinha", code: "CZ", hint: "Funciona melhor perto da agua e longe do lixo." },
-  { id: "enfermaria", label: "Enfermaria", code: "EF", hint: "Deve estar acessivel pela entrada." },
-  { id: "banheiros", label: "Banheiros", code: "BN", hint: "Devem ficar afastados da cozinha e da agua." },
-  { id: "lixo", label: "Lixo", code: "LX", hint: "Precisa ficar isolado da cozinha, barracas e agua." },
-  { id: "agua", label: "Agua", code: "AG", hint: "Ajuda a cozinha, mas nao deve ficar junto ao lixo." },
-  { id: "fogueira", label: "Fogueira", code: "FG", hint: "Deve ficar distante das barracas." }
+  { id: "entrada", label: "Entrada", code: "EN", sprite: "entrance", hint: "Deve ficar em uma borda do terreno." },
+  { id: "barraca1", label: "Barracas A", code: "B1", sprite: "tents", hint: "Uma ala de barracas longe da fogueira e do lixo." },
+  { id: "barraca2", label: "Barracas B", code: "B2", sprite: "tents", hint: "Mantenha as barracas agrupadas." },
+  { id: "barraca3", label: "Barracas C", code: "B3", sprite: "tents", hint: "Mais uma area de barracas para o clube." },
+  { id: "cozinha", label: "Cozinha", code: "CZ", sprite: "kitchen", hint: "Funciona melhor perto da agua e longe do lixo." },
+  { id: "enfermaria", label: "Enfermaria", code: "EF", sprite: "medic", hint: "Deve estar acessivel pela entrada." },
+  { id: "banheiros", label: "Banheiros", code: "BN", sprite: "bath", hint: "Devem ficar afastados da cozinha e da agua." },
+  { id: "lixo", label: "Lixo", code: "LX", sprite: "trash", hint: "Precisa ficar isolado da cozinha, barracas e agua." },
+  { id: "agua", label: "Agua", code: "AG", sprite: "water", hint: "Ajuda a cozinha, mas nao deve ficar junto ao lixo." },
+  { id: "fogueira", label: "Fogueira", code: "FG", sprite: "fire", hint: "Deve ficar distante das barracas." }
 ];
+const campTentIds = ["barraca1", "barraca2", "barraca3"];
 const campItemMap = Object.fromEntries(campItems.map((item) => [item.id, item]));
 
 let activeModal = null;
@@ -977,7 +980,7 @@ function renderCampItems() {
       "data-camp-item": item.id,
       "aria-pressed": String(campState.selected === item.id)
     }, [
-      el("span", { class: "camp-code", text: item.code }),
+      campSprite(item),
       el("strong", { text: item.label }),
       el("small", { text: placed ? "Posicionado" : item.hint })
     ]);
@@ -992,6 +995,21 @@ function renderCampItems() {
     list.appendChild(button);
   });
   return list;
+}
+
+function campSprite(item) {
+  const sprite = el("span", {
+    class: `camp-sprite camp-sprite-${item.sprite || "marker"}`,
+    "aria-hidden": "true"
+  });
+  if (item.sprite === "tents") {
+    sprite.append(
+      el("i", { class: "camp-mini-tent camp-mini-tent-a" }),
+      el("i", { class: "camp-mini-tent camp-mini-tent-b" }),
+      el("i", { class: "camp-mini-tent camp-mini-tent-c" })
+    );
+  }
+  return sprite;
 }
 
 function renderCampActions() {
@@ -1039,7 +1057,7 @@ function renderCampBoard() {
           ? `Linha ${row + 1}, coluna ${col + 1}: ${item.label}`
           : `Linha ${row + 1}, coluna ${col + 1}: vazio`
       }, item ? [
-        el("span", { class: "camp-token", text: item.code }),
+        campSprite(item),
         el("small", { text: item.label })
       ] : [
         el("span", { class: "sr-only", text: "Vazio" })
@@ -1149,9 +1167,12 @@ function validateCamp() {
   rule(["entrada"], () => campOnBorder(campState.placements.entrada), 8,
     "Entrada em uma borda do terreno.",
     "Coloque a entrada em uma das bordas para facilitar acesso e circulação.");
-  rule(["barracas", "fogueira"], () => campDistance("barracas", "fogueira") >= 3, 14,
-    "Barracas mantidas a uma distância segura da fogueira.",
+  rule([...campTentIds, "fogueira"], () => campTentIds.every((id) => campDistance(id, "fogueira") >= 3), 14,
+    "Ala de barracas mantida a uma distância segura da fogueira.",
     "Afaste a fogueira das barracas para reduzir risco de acidente.");
+  rule(campTentIds, () => campTentsGrouped(), 8,
+    "Barracas bem agrupadas como uma ala do clube.",
+    "Agrupe melhor as barracas para facilitar inspeção e organização.");
   rule(["cozinha", "lixo"], () => campDistance("cozinha", "lixo") >= 3, 12,
     "Cozinha afastada da área de lixo.",
     "A cozinha nao deve ficar perto do lixo.");
@@ -1170,7 +1191,7 @@ function validateCamp() {
   rule(["entrada", "enfermaria"], () => campDistance("entrada", "enfermaria") <= 3, 8,
     "Enfermaria acessivel pela entrada.",
     "A enfermaria precisa ficar em local de acesso rapido.");
-  rule(["barracas", "lixo"], () => campDistance("barracas", "lixo") >= 3, 8,
+  rule([...campTentIds, "lixo"], () => campTentIds.every((id) => campDistance(id, "lixo") >= 3), 8,
     "Barracas afastadas do lixo.",
     "Coloque o lixo longe da area de dormir.");
 
@@ -1184,6 +1205,16 @@ function campDistance(first, second) {
   const b = campState.placements[second];
   if (!a || !b) return Number.POSITIVE_INFINITY;
   return Math.abs(a.row - b.row) + Math.abs(a.col - b.col);
+}
+
+function campTentsGrouped() {
+  const distances = [];
+  campTentIds.forEach((first, index) => {
+    campTentIds.slice(index + 1).forEach((second) => {
+      distances.push(campDistance(first, second));
+    });
+  });
+  return distances.every((distance) => distance <= 3);
 }
 
 function campOnBorder(pos) {
