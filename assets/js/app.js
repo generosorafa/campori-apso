@@ -5,6 +5,7 @@ document.documentElement.classList.add("js");
 const eventDate = new Date("2026-09-04T14:00:00-03:00");
 const checklistKey = "campori-apso-checklist-v2";
 const campRankingKey = "campori-apso-camp-ranking-v1";
+const runnerRecordKey = "campori-apso-runner-record-v1";
 
 const checklistData = {
   docs: [
@@ -250,12 +251,29 @@ const campItems = [
 ];
 const campTentIds = ["barraca1", "barraca2", "barraca3"];
 const campItemMap = Object.fromEntries(campItems.map((item) => [item.id, item]));
+const runnerCharacters = [
+  { id: "boy", label: "Desbravador" },
+  { id: "girl", label: "Desbravadora" }
+];
+const runnerObstacles = [
+  { type: "log", label: "Tronco", width: 42, height: 22 },
+  { type: "backpack", label: "Mochila", width: 34, height: 30 },
+  { type: "tent", label: "Barraca baixa", width: 46, height: 34 },
+  { type: "puddle", label: "Poca", width: 48, height: 16 }
+];
+const runnerCollectibles = [
+  { type: "scarf", label: "Lenco", points: 80 },
+  { type: "bible", label: "Biblia", points: 100 },
+  { type: "canteen", label: "Cantil", points: 70 },
+  { type: "badge", label: "Especialidade", points: 120 }
+];
 
 let activeModal = null;
 let lastFocus = null;
 let quizState = { index: 0, score: 0, answered: false, data: quizData, target: "quizContent" };
 let triviaState = { index: 0, score: 0, answered: false, data: triviaData, target: "triviaContent" };
 let campState = createCampState();
+let runnerState = createRunnerState();
 let wordGrid = [];
 let wordPlaced = [];
 let wordFound = [];
@@ -596,6 +614,7 @@ function openModal(id) {
 
 function closeModal(modal = activeModal) {
   if (!modal) return;
+  if (modal.id === "runnerModal") stopRunnerGame();
   modal.hidden = true;
   activeModal = null;
   document.body.classList.remove("modal-open");
@@ -664,6 +683,11 @@ function initGames() {
       campState = createCampState();
       openModal("campModal");
       renderCampGame();
+    }
+    if (game.dataset.game === "runner") {
+      runnerState = createRunnerState(runnerState.character);
+      openModal("runnerModal");
+      renderRunnerGame();
     }
   });
 }
@@ -1264,6 +1288,396 @@ function saveCampScore() {
   renderCampGame();
 }
 
+function createRunnerState(character = "boy") {
+  const selected = runnerCharacters.some((item) => item.id === character) ? character : "boy";
+  return {
+    character: selected,
+    status: "ready",
+    score: 0,
+    record: loadRunnerRecord(),
+    speed: 260,
+    playerY: 0,
+    velocityY: 0,
+    onGround: true,
+    lastTime: 0,
+    nextObstacle: 480,
+    nextCollectible: 780,
+    entities: [],
+    entityId: 0,
+    raf: 0,
+    collected: 0
+  };
+}
+
+function loadRunnerRecord() {
+  try {
+    const value = Number(localStorage.getItem(runnerRecordKey) || "0");
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveRunnerRecord(score) {
+  try {
+    localStorage.setItem(runnerRecordKey, String(Math.floor(score)));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function renderRunnerGame() {
+  const target = document.getElementById("runnerContent");
+  if (!target) return;
+  stopRunnerGame();
+
+  const chooser = el("div", { class: "runner-chooser", role: "group", "aria-label": "Escolha o personagem" });
+  runnerCharacters.forEach((character) => {
+    const active = runnerState.character === character.id;
+    const button = el("button", {
+      class: `runner-character ${active ? "active" : ""}`,
+      type: "button",
+      "aria-pressed": String(active),
+      "data-runner-character": character.id
+    }, [
+      renderRunnerAvatar(character.id),
+      el("span", { text: character.label })
+    ]);
+    button.addEventListener("click", () => {
+      runnerState = createRunnerState(character.id);
+      renderRunnerGame();
+    });
+    chooser.appendChild(button);
+  });
+
+  const stage = el("div", {
+    class: "runner-stage",
+    tabindex: "0",
+    "data-runner-stage": "true",
+    "aria-label": "Trilha do Campori em pixel-art"
+  }, [
+    el("div", { class: "runner-sky", "aria-hidden": "true" }, [
+      el("span", { class: "runner-cloud runner-cloud-a" }),
+      el("span", { class: "runner-cloud runner-cloud-b" }),
+      el("span", { class: "runner-sun" })
+    ]),
+    el("div", { class: "runner-hills", "aria-hidden": "true" }),
+    el("div", { class: "runner-ground", "aria-hidden": "true" }),
+    el("div", { class: "runner-track", "data-runner-track": "true" }, [
+      renderRunnerPlayer()
+    ])
+  ]);
+  stage.addEventListener("pointerdown", () => runnerJump());
+
+  const start = el("button", { class: "btn btn-primary", type: "button", text: "Começar trilha", "data-runner-start": "true" });
+  start.addEventListener("click", startRunnerGame);
+
+  const jump = el("button", { class: "btn btn-ghost", type: "button", text: "Pular", "data-runner-jump": "true" });
+  jump.addEventListener("click", runnerJump);
+
+  target.replaceChildren(
+    el("div", { class: "runner-game" }, [
+      chooser,
+      renderRunnerHud(),
+      stage,
+      el("div", { class: "runner-actions" }, [start, jump]),
+      el("div", { class: "runner-message", "data-runner-message": "true", "aria-live": "polite" })
+    ])
+  );
+
+  updateRunnerPlayer();
+  updateRunnerHud();
+  updateRunnerMessage("Pronto para partir", "Escolha o personagem e comece a trilha.");
+}
+
+function renderRunnerHud() {
+  return el("div", { class: "runner-hud" }, [
+    el("div", { class: "runner-stat" }, [
+      el("span", { text: "Pontos" }),
+      el("strong", { text: "0", "data-runner-score": "true" })
+    ]),
+    el("div", { class: "runner-stat" }, [
+      el("span", { text: "Recorde" }),
+      el("strong", { text: String(runnerState.record), "data-runner-record": "true" })
+    ]),
+    el("div", { class: "runner-stat" }, [
+      el("span", { text: "Nível" }),
+      el("strong", { text: "1", "data-runner-level": "true" })
+    ]),
+    el("div", { class: "runner-stat" }, [
+      el("span", { text: "Itens" }),
+      el("strong", { text: "0", "data-runner-items": "true" })
+    ])
+  ]);
+}
+
+function renderRunnerAvatar(character) {
+  return el("span", { class: `runner-avatar runner-avatar-${character}`, "aria-hidden": "true" }, [
+    el("i", { class: "runner-avatar-head" }),
+    el("i", { class: "runner-avatar-body" }),
+    el("i", { class: "runner-avatar-scarf" })
+  ]);
+}
+
+function renderRunnerPlayer() {
+  return el("span", {
+    class: `runner-player runner-player-${runnerState.character}`,
+    "data-runner-player": "true",
+    "aria-hidden": "true"
+  }, [
+    el("i", { class: "runner-player-head" }),
+    el("i", { class: "runner-player-body" }),
+    el("i", { class: "runner-player-scarf" }),
+    el("i", { class: "runner-player-leg runner-player-leg-a" }),
+    el("i", { class: "runner-player-leg runner-player-leg-b" })
+  ]);
+}
+
+function startRunnerGame() {
+  const character = runnerState.character;
+  runnerState = createRunnerState(character);
+  runnerState.status = "running";
+  runnerState.lastTime = performance.now();
+
+  const track = document.querySelector("[data-runner-track]");
+  if (track) track.querySelectorAll(".runner-entity").forEach((node) => node.remove());
+
+  const player = document.querySelector("[data-runner-player]");
+  if (player) player.classList.remove("runner-player-hit");
+
+  updateRunnerHud();
+  updateRunnerPlayer();
+  updateRunnerMessage("Trilha iniciada", "Pegue os itens e salte os obstáculos.");
+  runnerState.raf = requestAnimationFrame(runnerLoop);
+}
+
+function stopRunnerGame() {
+  if (!runnerState || !runnerState.raf) return;
+  cancelAnimationFrame(runnerState.raf);
+  runnerState.raf = 0;
+}
+
+function runnerJump() {
+  if (runnerState.status !== "running") {
+    startRunnerGame();
+    return;
+  }
+  if (!runnerState.onGround) return;
+
+  runnerState.velocityY = -760;
+  runnerState.onGround = false;
+  const player = document.querySelector("[data-runner-player]");
+  if (player) {
+    player.classList.remove("runner-player-hop");
+    void player.offsetWidth;
+    player.classList.add("runner-player-hop");
+  }
+}
+
+function runnerLoop(timestamp) {
+  if (runnerState.status !== "running") return;
+  const dt = Math.min(0.034, Math.max(0, (timestamp - runnerState.lastTime) / 1000 || 0));
+  runnerState.lastTime = timestamp;
+  runnerState.score += dt * (16 + runnerState.speed * 0.03);
+  runnerState.speed = Math.min(560, 260 + runnerState.score * 0.09);
+
+  updateRunnerPhysics(dt);
+  updateRunnerSpawns(dt);
+  updateRunnerEntities(dt);
+  checkRunnerCollisions();
+  if (runnerState.status !== "running") return;
+
+  updateRunnerHud();
+  runnerState.raf = requestAnimationFrame(runnerLoop);
+}
+
+function updateRunnerPhysics(dt) {
+  if (runnerState.onGround) return;
+  runnerState.velocityY += 1850 * dt;
+  runnerState.playerY += runnerState.velocityY * dt;
+  if (runnerState.playerY >= 0) {
+    runnerState.playerY = 0;
+    runnerState.velocityY = 0;
+    runnerState.onGround = true;
+  }
+  updateRunnerPlayer();
+}
+
+function updateRunnerSpawns(dt) {
+  runnerState.nextObstacle -= runnerState.speed * dt;
+  runnerState.nextCollectible -= runnerState.speed * dt;
+
+  if (runnerState.nextObstacle <= 0) {
+    spawnRunnerEntity("obstacle");
+    runnerState.nextObstacle = randomRunnerRange(360, 680) - Math.min(180, runnerState.score * 0.22);
+  }
+
+  if (runnerState.nextCollectible <= 0) {
+    spawnRunnerEntity("collectible");
+    runnerState.nextCollectible = randomRunnerRange(620, 1080) - Math.min(160, runnerState.score * 0.18);
+  }
+}
+
+function spawnRunnerEntity(kind) {
+  const stage = document.querySelector("[data-runner-stage]");
+  const track = document.querySelector("[data-runner-track]");
+  if (!stage || !track) return;
+
+  const isObstacle = kind === "obstacle";
+  const item = runnerPick(isObstacle ? runnerObstacles : runnerCollectibles);
+  const width = item.width || 30;
+  const height = item.height || 30;
+  const entity = {
+    id: runnerState.entityId,
+    kind,
+    type: item.type,
+    label: item.label,
+    points: item.points || 0,
+    width,
+    height,
+    x: stage.clientWidth + randomRunnerRange(18, 70),
+    y: isObstacle ? 0 : -randomRunnerRange(82, 130),
+    node: el("span", {
+      class: `runner-entity ${isObstacle ? "runner-obstacle" : "runner-collectible"} runner-${kind}-${item.type}`,
+      "aria-hidden": "true"
+    }),
+    dead: false
+  };
+  runnerState.entityId += 1;
+  entity.node.style.width = `${width}px`;
+  entity.node.style.height = `${height}px`;
+  track.appendChild(entity.node);
+  runnerState.entities.push(entity);
+  positionRunnerEntity(entity);
+}
+
+function updateRunnerEntities(dt) {
+  runnerState.entities.forEach((entity) => {
+    entity.x -= runnerState.speed * dt;
+    if (entity.x < -90) {
+      entity.dead = true;
+      entity.node.remove();
+    } else {
+      positionRunnerEntity(entity);
+    }
+  });
+  runnerState.entities = runnerState.entities.filter((entity) => !entity.dead);
+}
+
+function positionRunnerEntity(entity) {
+  entity.node.style.transform = `translate(${Math.round(entity.x)}px, ${Math.round(entity.y)}px)`;
+}
+
+function checkRunnerCollisions() {
+  const stage = document.querySelector("[data-runner-stage]");
+  const player = document.querySelector("[data-runner-player]");
+  if (!stage) return;
+
+  const ground = 42;
+  const height = stage.clientHeight;
+  const playerBox = {
+    x: player ? player.offsetLeft + 10 : 88,
+    y: height - ground - 56 + runnerState.playerY + 8,
+    w: 28,
+    h: 44
+  };
+
+  for (const entity of runnerState.entities) {
+    const entityBox = {
+      x: entity.x + 6,
+      y: height - ground - entity.height + entity.y + 4,
+      w: Math.max(8, entity.width - 12),
+      h: Math.max(8, entity.height - 8)
+    };
+
+    if (!runnerBoxesOverlap(playerBox, entityBox)) continue;
+
+    if (entity.kind === "obstacle") {
+      runnerGameOver();
+      return;
+    }
+
+    entity.dead = true;
+    entity.node.remove();
+    runnerState.score += entity.points;
+    runnerState.collected += 1;
+    updateRunnerMessage("Item coletado", `${entity.label} +${entity.points}`);
+  }
+
+  runnerState.entities = runnerState.entities.filter((entity) => !entity.dead);
+}
+
+function runnerGameOver() {
+  runnerState.status = "over";
+  stopRunnerGame();
+  const finalScore = Math.floor(runnerState.score);
+  let title = "Fim de trilha";
+  let text = `Pontuação: ${finalScore}.`;
+  if (finalScore > runnerState.record) {
+    runnerState.record = finalScore;
+    title = "Novo recorde local";
+    text = `Você fez ${finalScore} pontos.`;
+    if (!saveRunnerRecord(finalScore)) text += " O navegador não permitiu salvar.";
+  }
+
+  const player = document.querySelector("[data-runner-player]");
+  if (player) player.classList.add("runner-player-hit");
+
+  updateRunnerHud();
+  updateRunnerMessage(title, text);
+}
+
+function updateRunnerPlayer() {
+  const player = document.querySelector("[data-runner-player]");
+  if (!player) return;
+  player.style.transform = `translateY(${Math.round(runnerState.playerY)}px)`;
+}
+
+function updateRunnerHud() {
+  const score = document.querySelector("[data-runner-score]");
+  const record = document.querySelector("[data-runner-record]");
+  const level = document.querySelector("[data-runner-level]");
+  const items = document.querySelector("[data-runner-items]");
+  const start = document.querySelector("[data-runner-start]");
+
+  if (score) score.textContent = String(Math.floor(runnerState.score));
+  if (record) record.textContent = String(runnerState.record);
+  if (level) level.textContent = String(Math.max(1, Math.floor((runnerState.speed - 220) / 70)));
+  if (items) items.textContent = String(runnerState.collected);
+  if (start) start.textContent = runnerState.status === "running" ? "Reiniciar" : "Começar trilha";
+}
+
+function updateRunnerMessage(title, text) {
+  const message = document.querySelector("[data-runner-message]");
+  if (!message) return;
+  message.replaceChildren(
+    el("strong", { text: title }),
+    el("span", { text })
+  );
+}
+
+function initRunnerKeys() {
+  document.addEventListener("keydown", (event) => {
+    if (!activeModal || activeModal.id !== "runnerModal") return;
+    if (event.code !== "Space" && event.code !== "ArrowUp") return;
+    event.preventDefault();
+    runnerJump();
+  });
+}
+
+function runnerPick(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function randomRunnerRange(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function runnerBoxesOverlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
 function showToast(message) {
   const existing = document.querySelector(".toast");
   if (existing) existing.remove();
@@ -1293,6 +1707,7 @@ function init() {
   initReveal();
   initModals();
   initGames();
+  initRunnerKeys();
   initCloseModalLinks();
 }
 
