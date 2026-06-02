@@ -1378,6 +1378,8 @@ function renderRunnerGame() {
   const target = document.getElementById("runnerContent");
   if (!target) return;
   stopRunnerGame();
+  target.addEventListener("contextmenu", preventRunnerSelection);
+  target.addEventListener("selectstart", preventRunnerSelection);
 
   const chooser = el("div", { class: "runner-chooser", role: "group", "aria-label": "Escolha o personagem" });
   runnerCharacters.forEach((character) => {
@@ -1516,6 +1518,10 @@ function stopRunnerGame() {
   if (!runnerState || !runnerState.raf) return;
   cancelAnimationFrame(runnerState.raf);
   runnerState.raf = 0;
+}
+
+function preventRunnerSelection(event) {
+  event.preventDefault();
 }
 
 function beginRunnerJump(event) {

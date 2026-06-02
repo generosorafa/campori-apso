@@ -1542,9 +1542,16 @@ strong {
 }
 
 .modal-box-runner {
+  -webkit-touch-callout: none;
   max-height: min(94vh, 840px);
   max-width: 980px;
   width: min(96vw, 980px);
+}
+
+.modal-box-runner,
+.modal-box-runner * {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .modal-close {
@@ -2464,7 +2471,7 @@ strong {
   height: clamp(260px, 32vw, 320px);
   overflow: hidden;
   position: relative;
-  touch-action: manipulation;
+  touch-action: none;
 }
 
 .runner-stage:focus-visible {
@@ -3228,6 +3235,12 @@ strong {
   flex-wrap: wrap;
   gap: 0.7rem;
   justify-content: center;
+}
+
+.runner-actions .btn,
+.runner-character,
+.runner-stage {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .runner-message {
