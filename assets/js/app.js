@@ -256,16 +256,16 @@ const runnerCharacters = [
   { id: "girl", label: "Desbravadora" }
 ];
 const runnerObstacles = [
-  { type: "log", label: "Tronco", width: 42, height: 22 },
-  { type: "backpack", label: "Mochila", width: 34, height: 30 },
-  { type: "tent", label: "Barraca baixa", width: 46, height: 34 },
-  { type: "puddle", label: "Poca", width: 48, height: 16 }
+  { type: "log", label: "Tronco", width: 50, height: 24 },
+  { type: "backpack", label: "Mochila", width: 38, height: 36 },
+  { type: "tent", label: "Barraca baixa", width: 54, height: 38 },
+  { type: "puddle", label: "Poca", width: 54, height: 18 }
 ];
 const runnerCollectibles = [
-  { type: "scarf", label: "Lenco", points: 80 },
-  { type: "bible", label: "Biblia", points: 100 },
-  { type: "canteen", label: "Cantil", points: 70 },
-  { type: "badge", label: "Especialidade", points: 120 }
+  { type: "scarf", label: "Lenco", points: 80, width: 34, height: 30 },
+  { type: "bible", label: "Biblia", points: 100, width: 34, height: 36 },
+  { type: "canteen", label: "Cantil", points: 70, width: 34, height: 34 },
+  { type: "badge", label: "Especialidade", points: 120, width: 32, height: 34 }
 ];
 
 let activeModal = null;
@@ -1305,7 +1305,10 @@ function createRunnerState(character = "boy") {
     entities: [],
     entityId: 0,
     raf: 0,
-    collected: 0
+    collected: 0,
+    jumpHeld: false,
+    jumpHoldTime: 0,
+    jumpHoldLimit: 0.23
   };
 }
 
@@ -1368,18 +1371,25 @@ function renderRunnerGame() {
       renderRunnerPlayer()
     ])
   ]);
-  stage.addEventListener("pointerdown", () => runnerJump());
+  stage.addEventListener("pointerdown", beginRunnerJump);
+  stage.addEventListener("pointerup", endRunnerJump);
+  stage.addEventListener("pointerleave", endRunnerJump);
+  stage.addEventListener("pointercancel", endRunnerJump);
 
   const start = el("button", { class: "btn btn-primary", type: "button", text: "Começar trilha", "data-runner-start": "true" });
   start.addEventListener("click", startRunnerGame);
 
   const jump = el("button", { class: "btn btn-ghost", type: "button", text: "Pular", "data-runner-jump": "true" });
-  jump.addEventListener("click", runnerJump);
+  jump.addEventListener("pointerdown", beginRunnerJump);
+  jump.addEventListener("pointerup", endRunnerJump);
+  jump.addEventListener("pointerleave", endRunnerJump);
+  jump.addEventListener("pointercancel", endRunnerJump);
 
   target.replaceChildren(
     el("div", { class: "runner-game" }, [
       chooser,
       renderRunnerHud(),
+      renderRunnerPower(),
       stage,
       el("div", { class: "runner-actions" }, [start, jump]),
       el("div", { class: "runner-message", "data-runner-message": "true", "aria-live": "polite" })
@@ -1388,6 +1398,7 @@ function renderRunnerGame() {
 
   updateRunnerPlayer();
   updateRunnerHud();
+  updateRunnerPower();
   updateRunnerMessage("Pronto para partir", "Escolha o personagem e comece a trilha.");
 }
 
@@ -1412,11 +1423,26 @@ function renderRunnerHud() {
   ]);
 }
 
+function renderRunnerPower() {
+  return el("div", { class: "runner-power", "aria-label": "Forca do pulo" }, [
+    el("span", { text: "Força do pulo" }),
+    el("div", { class: "runner-power-track", "aria-hidden": "true" }, [
+      el("i", { class: "runner-power-fill", "data-runner-power": "true" })
+    ]),
+    el("strong", { text: "0%", "data-runner-power-text": "true" })
+  ]);
+}
+
 function renderRunnerAvatar(character) {
   return el("span", { class: `runner-avatar runner-avatar-${character}`, "aria-hidden": "true" }, [
     el("i", { class: "runner-avatar-head" }),
+    el("i", { class: "runner-avatar-hair" }),
+    el("i", { class: "runner-avatar-face" }),
     el("i", { class: "runner-avatar-body" }),
-    el("i", { class: "runner-avatar-scarf" })
+    el("i", { class: "runner-avatar-scarf" }),
+    el("i", { class: "runner-avatar-belt" }),
+    el("i", { class: "runner-avatar-leg runner-avatar-leg-a" }),
+    el("i", { class: "runner-avatar-leg runner-avatar-leg-b" })
   ]);
 }
 
@@ -1427,8 +1453,13 @@ function renderRunnerPlayer() {
     "aria-hidden": "true"
   }, [
     el("i", { class: "runner-player-head" }),
+    el("i", { class: "runner-player-hair" }),
+    el("i", { class: "runner-player-face" }),
     el("i", { class: "runner-player-body" }),
     el("i", { class: "runner-player-scarf" }),
+    el("i", { class: "runner-player-backpack" }),
+    el("i", { class: "runner-player-arm runner-player-arm-a" }),
+    el("i", { class: "runner-player-arm runner-player-arm-b" }),
     el("i", { class: "runner-player-leg runner-player-leg-a" }),
     el("i", { class: "runner-player-leg runner-player-leg-b" })
   ]);
@@ -1447,6 +1478,7 @@ function startRunnerGame() {
   if (player) player.classList.remove("runner-player-hit");
 
   updateRunnerHud();
+  updateRunnerPower();
   updateRunnerPlayer();
   updateRunnerMessage("Trilha iniciada", "Pegue os itens e salte os obstáculos.");
   runnerState.raf = requestAnimationFrame(runnerLoop);
@@ -1458,21 +1490,31 @@ function stopRunnerGame() {
   runnerState.raf = 0;
 }
 
-function runnerJump() {
+function beginRunnerJump(event) {
+  if (event) event.preventDefault();
   if (runnerState.status !== "running") {
     startRunnerGame();
-    return;
   }
   if (!runnerState.onGround) return;
 
-  runnerState.velocityY = -760;
+  runnerState.velocityY = -600;
   runnerState.onGround = false;
+  runnerState.jumpHeld = true;
+  runnerState.jumpHoldTime = 0;
   const player = document.querySelector("[data-runner-player]");
   if (player) {
     player.classList.remove("runner-player-hop");
     void player.offsetWidth;
     player.classList.add("runner-player-hop");
   }
+  updateRunnerPower();
+}
+
+function endRunnerJump(event) {
+  if (event) event.preventDefault();
+  if (!runnerState.jumpHeld) return;
+  runnerState.jumpHeld = false;
+  updateRunnerPower();
 }
 
 function runnerLoop(timestamp) {
@@ -1494,14 +1536,25 @@ function runnerLoop(timestamp) {
 
 function updateRunnerPhysics(dt) {
   if (runnerState.onGround) return;
-  runnerState.velocityY += 1850 * dt;
+  if (runnerState.jumpHeld && runnerState.jumpHoldTime < runnerState.jumpHoldLimit && runnerState.velocityY < 0) {
+    const remaining = 1 - (runnerState.jumpHoldTime / runnerState.jumpHoldLimit);
+    runnerState.velocityY -= 1650 * remaining * dt;
+    runnerState.velocityY = Math.max(runnerState.velocityY, -910);
+    runnerState.jumpHoldTime += dt;
+    if (runnerState.jumpHoldTime >= runnerState.jumpHoldLimit) runnerState.jumpHeld = false;
+  }
+  const gravity = runnerState.velocityY < 0 && !runnerState.jumpHeld ? 2300 : 1850;
+  runnerState.velocityY += gravity * dt;
   runnerState.playerY += runnerState.velocityY * dt;
   if (runnerState.playerY >= 0) {
     runnerState.playerY = 0;
     runnerState.velocityY = 0;
     runnerState.onGround = true;
+    runnerState.jumpHeld = false;
+    runnerState.jumpHoldTime = 0;
   }
   updateRunnerPlayer();
+  updateRunnerPower();
 }
 
 function updateRunnerSpawns(dt) {
@@ -1576,11 +1629,13 @@ function checkRunnerCollisions() {
 
   const ground = 42;
   const height = stage.clientHeight;
+  const playerWidth = player ? player.offsetWidth : 48;
+  const playerHeight = player ? player.offsetHeight : 68;
   const playerBox = {
-    x: player ? player.offsetLeft + 10 : 88,
-    y: height - ground - 56 + runnerState.playerY + 8,
-    w: 28,
-    h: 44
+    x: player ? player.offsetLeft + 13 : 88,
+    y: height - ground - playerHeight + runnerState.playerY + 12,
+    w: Math.max(22, playerWidth - 26),
+    h: Math.max(34, playerHeight - 18)
   };
 
   for (const entity of runnerState.entities) {
@@ -1625,6 +1680,7 @@ function runnerGameOver() {
   if (player) player.classList.add("runner-player-hit");
 
   updateRunnerHud();
+  updateRunnerPower();
   updateRunnerMessage(title, text);
 }
 
@@ -1648,6 +1704,17 @@ function updateRunnerHud() {
   if (start) start.textContent = runnerState.status === "running" ? "Reiniciar" : "Começar trilha";
 }
 
+function updateRunnerPower() {
+  const fill = document.querySelector("[data-runner-power]");
+  const text = document.querySelector("[data-runner-power-text]");
+  if (!fill || !text) return;
+  const amount = runnerState.jumpHeld && !runnerState.onGround
+    ? Math.min(100, Math.round((runnerState.jumpHoldTime / runnerState.jumpHoldLimit) * 100))
+    : 0;
+  fill.style.width = `${amount}%`;
+  text.textContent = `${amount}%`;
+}
+
 function updateRunnerMessage(title, text) {
   const message = document.querySelector("[data-runner-message]");
   if (!message) return;
@@ -1660,10 +1727,21 @@ function updateRunnerMessage(title, text) {
 function initRunnerKeys() {
   document.addEventListener("keydown", (event) => {
     if (!activeModal || activeModal.id !== "runnerModal") return;
-    if (event.code !== "Space" && event.code !== "ArrowUp") return;
+    if (!runnerIsJumpKey(event)) return;
     event.preventDefault();
-    runnerJump();
+    if (event.repeat && runnerState.jumpHeld) return;
+    beginRunnerJump();
   });
+  document.addEventListener("keyup", (event) => {
+    if (!activeModal || activeModal.id !== "runnerModal") return;
+    if (!runnerIsJumpKey(event)) return;
+    event.preventDefault();
+    endRunnerJump();
+  });
+}
+
+function runnerIsJumpKey(event) {
+  return event.code === "Space" || event.code === "ArrowUp" || event.code === "Enter";
 }
 
 function runnerPick(items) {
