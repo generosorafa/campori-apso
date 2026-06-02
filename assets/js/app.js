@@ -255,6 +255,8 @@ const runnerCharacters = [
   { id: "boy", label: "Desbravador" },
   { id: "girl", label: "Desbravadora" }
 ];
+const runnerLevelPoints = 1000;
+const runnerMaxLevel = 20;
 const runnerObstacles = [
   { type: "log", label: "Tronco", row: 2, col: 0, width: 52, height: 30 },
   { type: "tent", label: "Barraca baixa", row: 2, col: 1, width: 54, height: 42 },
@@ -1303,17 +1305,19 @@ function createRunnerState(character = "boy") {
     status: "ready",
     score: 0,
     record: loadRunnerRecord(),
-    speed: 260,
+    level: 1,
+    speed: runnerDifficulty(1).speed,
     playerY: 0,
     velocityY: 0,
     onGround: true,
     lastTime: 0,
-    nextObstacle: 480,
-    nextCollectible: 780,
+    nextObstacle: 980,
+    nextCollectible: 720,
     entities: [],
     entityId: 0,
     raf: 0,
     collected: 0,
+    lastHudAt: 0,
     jumpHeld: false,
     jumpHoldTime: 0,
     jumpHoldLimit: 0.23
@@ -1322,20 +1326,52 @@ function createRunnerState(character = "boy") {
 
 function loadRunnerRecord() {
   try {
-    const value = Number(localStorage.getItem(runnerRecordKey) || "0");
-    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+    const raw = localStorage.getItem(runnerRecordKey);
+    if (!raw) return { score: 0, items: 0 };
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === "number") return { score: Math.max(0, Math.floor(parsed)), items: 0 };
+    return {
+      score: Math.max(0, Math.floor(Number(parsed.score) || 0)),
+      items: Math.max(0, Math.floor(Number(parsed.items) || 0))
+    };
   } catch {
-    return 0;
+    return { score: 0, items: 0 };
   }
 }
 
-function saveRunnerRecord(score) {
+function saveRunnerRecord(record) {
   try {
-    localStorage.setItem(runnerRecordKey, String(Math.floor(score)));
+    localStorage.setItem(runnerRecordKey, JSON.stringify({
+      score: Math.max(0, Math.floor(record.score) || 0),
+      items: Math.max(0, Math.floor(record.items) || 0)
+    }));
     return true;
   } catch {
     return false;
   }
+}
+
+function runnerLevel(score = runnerState.score) {
+  return Math.min(runnerMaxLevel, Math.floor(score / runnerLevelPoints) + 1);
+}
+
+function runnerDifficulty(level = runnerState.level) {
+  const clamped = Math.max(1, Math.min(runnerMaxLevel, level));
+  const t = (clamped - 1) / (runnerMaxLevel - 1);
+  return {
+    speed: Math.round(230 + t * 380),
+    scoreRate: 30 + clamped * 1.3,
+    obstacleMin: Math.round(900 - t * 540),
+    obstacleMax: Math.round(1250 - t * 650),
+    collectibleMin: Math.round(820 - t * 220),
+    collectibleMax: Math.round(1500 - t * 440)
+  };
+}
+
+function runnerObstaclePool() {
+  if (runnerState.level < 4) return runnerObstacles.slice(0, 4);
+  if (runnerState.level < 8) return runnerObstacles.slice(0, 6);
+  return runnerObstacles;
 }
 
 function renderRunnerGame() {
@@ -1374,6 +1410,8 @@ function renderRunnerGame() {
       el("span", { class: "runner-sun" })
     ]),
     el("div", { class: "runner-hills", "aria-hidden": "true" }),
+    el("div", { class: "runner-forest", "aria-hidden": "true" }),
+    el("div", { class: "runner-trail", "aria-hidden": "true" }),
     el("div", { class: "runner-ground", "aria-hidden": "true" }),
     el("div", { class: "runner-track", "data-runner-track": "true" }, [
       renderRunnerPlayer()
@@ -1418,7 +1456,8 @@ function renderRunnerHud() {
     ]),
     el("div", { class: "runner-stat" }, [
       el("span", { text: "Recorde" }),
-      el("strong", { text: String(runnerState.record), "data-runner-record": "true" })
+      el("strong", { text: String(runnerState.record.score), "data-runner-record": "true" }),
+      el("small", { text: `${runnerState.record.items} itens`, "data-runner-record-items": "true" })
     ]),
     el("div", { class: "runner-stat" }, [
       el("span", { text: "Nível" }),
@@ -1458,6 +1497,7 @@ function startRunnerGame() {
   runnerState = createRunnerState(character);
   runnerState.status = "running";
   runnerState.lastTime = performance.now();
+  runnerState.lastHudAt = runnerState.lastTime;
 
   const track = document.querySelector("[data-runner-track]");
   if (track) track.querySelectorAll(".runner-entity").forEach((node) => node.remove());
@@ -1509,8 +1549,17 @@ function runnerLoop(timestamp) {
   if (runnerState.status !== "running") return;
   const dt = Math.min(0.034, Math.max(0, (timestamp - runnerState.lastTime) / 1000 || 0));
   runnerState.lastTime = timestamp;
-  runnerState.score += dt * (16 + runnerState.speed * 0.03);
-  runnerState.speed = Math.min(560, 260 + runnerState.score * 0.09);
+  const previousLevel = runnerState.level;
+  const difficulty = runnerDifficulty(previousLevel);
+  runnerState.score += dt * difficulty.scoreRate;
+  runnerState.level = runnerLevel(runnerState.score);
+  runnerState.speed = runnerDifficulty(runnerState.level).speed;
+  if (runnerState.level !== previousLevel) {
+    const message = runnerState.level === runnerMaxLevel
+      ? "Desafio máximo liberado. Agora é habilidade pura."
+      : "A trilha ficou mais rápida.";
+    updateRunnerMessage(`Nível ${runnerState.level}`, message);
+  }
 
   updateRunnerPhysics(dt);
   updateRunnerSpawns(dt);
@@ -1519,7 +1568,10 @@ function runnerLoop(timestamp) {
   if (runnerState.status !== "running") return;
 
   updateRunnerPlayerFrame();
-  updateRunnerHud();
+  if (timestamp - runnerState.lastHudAt > 90) {
+    updateRunnerHud();
+    runnerState.lastHudAt = timestamp;
+  }
   runnerState.raf = requestAnimationFrame(runnerLoop);
 }
 
@@ -1547,17 +1599,18 @@ function updateRunnerPhysics(dt) {
 }
 
 function updateRunnerSpawns(dt) {
+  const difficulty = runnerDifficulty(runnerState.level);
   runnerState.nextObstacle -= runnerState.speed * dt;
   runnerState.nextCollectible -= runnerState.speed * dt;
 
   if (runnerState.nextObstacle <= 0) {
     spawnRunnerEntity("obstacle");
-    runnerState.nextObstacle = randomRunnerRange(360, 680) - Math.min(180, runnerState.score * 0.22);
+    runnerState.nextObstacle = randomRunnerRange(difficulty.obstacleMin, difficulty.obstacleMax);
   }
 
   if (runnerState.nextCollectible <= 0) {
     spawnRunnerEntity("collectible");
-    runnerState.nextCollectible = randomRunnerRange(620, 1080) - Math.min(160, runnerState.score * 0.18);
+    runnerState.nextCollectible = randomRunnerRange(difficulty.collectibleMin, difficulty.collectibleMax);
   }
 }
 
@@ -1567,7 +1620,7 @@ function spawnRunnerEntity(kind) {
   if (!stage || !track) return;
 
   const isObstacle = kind === "obstacle";
-  const item = runnerPick(isObstacle ? runnerObstacles : runnerCollectibles);
+  const item = runnerPick(isObstacle ? runnerObstaclePool() : runnerCollectibles);
   const width = item.width || 30;
   const height = item.height || 30;
   const entity = {
@@ -1610,7 +1663,7 @@ function updateRunnerEntities(dt) {
 }
 
 function positionRunnerEntity(entity) {
-  entity.node.style.transform = `translate(${Math.round(entity.x)}px, ${Math.round(entity.y)}px)`;
+  entity.node.style.transform = `translate3d(${entity.x.toFixed(1)}px, ${entity.y.toFixed(1)}px, 0) scale(var(--runner-entity-scale, 1))`;
 }
 
 function checkRunnerCollisions() {
@@ -1659,12 +1712,14 @@ function runnerGameOver() {
   stopRunnerGame();
   const finalScore = Math.floor(runnerState.score);
   let title = "Fim de trilha";
-  let text = `Pontuação: ${finalScore}.`;
-  if (finalScore > runnerState.record) {
-    runnerState.record = finalScore;
+  let text = `Pontuação: ${finalScore} - Itens: ${runnerState.collected}.`;
+  const isRecord = finalScore > runnerState.record.score ||
+    (finalScore === runnerState.record.score && runnerState.collected > runnerState.record.items);
+  if (isRecord) {
+    runnerState.record = { score: finalScore, items: runnerState.collected };
     title = "Novo recorde local";
-    text = `Você fez ${finalScore} pontos.`;
-    if (!saveRunnerRecord(finalScore)) text += " O navegador não permitiu salvar.";
+    text = `Você fez ${finalScore} pontos e coletou ${runnerState.collected} itens.`;
+    if (!saveRunnerRecord(runnerState.record)) text += " O navegador não permitiu salvar.";
   }
 
   const player = document.querySelector("[data-runner-player]");
@@ -1680,7 +1735,7 @@ function updateRunnerPlayer() {
   const player = document.querySelector("[data-runner-player]");
   if (!player) return;
   updateRunnerPlayerFrame(player);
-  player.style.transform = `translateY(${Math.round(runnerState.playerY)}px)`;
+  player.style.transform = `translate3d(0, ${runnerState.playerY.toFixed(1)}px, 0) scale(var(--runner-player-scale, 1))`;
 }
 
 function updateRunnerPlayerFrame(player = document.querySelector("[data-runner-player]")) {
@@ -1697,13 +1752,15 @@ function updateRunnerPlayerFrame(player = document.querySelector("[data-runner-p
 function updateRunnerHud() {
   const score = document.querySelector("[data-runner-score]");
   const record = document.querySelector("[data-runner-record]");
+  const recordItems = document.querySelector("[data-runner-record-items]");
   const level = document.querySelector("[data-runner-level]");
   const items = document.querySelector("[data-runner-items]");
   const start = document.querySelector("[data-runner-start]");
 
   if (score) score.textContent = String(Math.floor(runnerState.score));
-  if (record) record.textContent = String(runnerState.record);
-  if (level) level.textContent = String(Math.max(1, Math.floor((runnerState.speed - 220) / 70)));
+  if (record) record.textContent = String(runnerState.record.score);
+  if (recordItems) recordItems.textContent = `${runnerState.record.items} itens`;
+  if (level) level.textContent = `${runnerState.level}/${runnerMaxLevel}`;
   if (items) items.textContent = String(runnerState.collected);
   if (start) start.textContent = runnerState.status === "running" ? "Reiniciar" : "Começar trilha";
 }

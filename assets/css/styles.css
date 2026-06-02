@@ -2400,6 +2400,15 @@ strong {
   line-height: 1;
 }
 
+.runner-stat small {
+  color: var(--text-muted);
+  font-family: "Cinzel", serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .runner-power {
   align-items: center;
   background: #130b05;
@@ -2446,9 +2455,12 @@ strong {
 }
 
 .runner-stage {
-  background: #6bb9df;
+  --runner-entity-scale: 1;
+  --runner-player-scale: 1;
+  background: #8ccce9;
   border: 4px solid #8a5124;
   box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.32);
+  contain: layout paint;
   height: clamp(260px, 32vw, 320px);
   overflow: hidden;
   position: relative;
@@ -2462,6 +2474,8 @@ strong {
 
 .runner-sky,
 .runner-hills,
+.runner-forest,
+.runner-trail,
 .runner-ground,
 .runner-track {
   inset: 0;
@@ -2470,7 +2484,7 @@ strong {
 
 .runner-sky {
   background:
-    linear-gradient(180deg, #7bc5ec 0%, #bce6ef 58%, #dff2d6 100%);
+    linear-gradient(180deg, #74c4ef 0%, #bcecf7 45%, #f6d7a5 78%, #8cc653 100%);
   z-index: 1;
 }
 
@@ -2510,25 +2524,46 @@ strong {
 
 .runner-hills {
   background:
-    linear-gradient(135deg, transparent 0 30%, #548b38 30% 58%, transparent 58%) 0 100% / 190px 118px repeat-x,
-    linear-gradient(135deg, transparent 0 35%, #6ca948 35% 62%, transparent 62%) 80px 100% / 240px 142px repeat-x;
+    linear-gradient(135deg, transparent 0 30%, #346a30 30% 58%, transparent 58%) 0 100% / 210px 118px repeat-x,
+    linear-gradient(135deg, transparent 0 35%, #6ca948 35% 62%, transparent 62%) 86px 100% / 260px 148px repeat-x;
   bottom: 42px;
   height: 190px;
   inset: auto 0 42px;
   z-index: 2;
 }
 
+.runner-forest {
+  background:
+    linear-gradient(90deg, transparent 0 44px, #6f461f 44px 52px, transparent 52px 118px) 0 100% / 128px 64px repeat-x,
+    linear-gradient(135deg, transparent 0 32%, #245b2c 32% 61%, transparent 61%) 12px 100% / 118px 98px repeat-x,
+    linear-gradient(135deg, transparent 0 34%, #3f8f3f 34% 63%, transparent 63%) 74px 100% / 146px 112px repeat-x;
+  height: 106px;
+  inset: auto 0 42px;
+  opacity: 0.92;
+  z-index: 3;
+}
+
+.runner-trail {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 36px, rgba(75, 44, 20, 0.36) 36px 42px, transparent 42px 86px),
+    linear-gradient(180deg, transparent 0 22px, #72aa49 22px 36px, #9f6331 36px 100%);
+  clip-path: polygon(0 42%, 100% 25%, 100% 100%, 0 100%);
+  height: 78px;
+  inset: auto 0 42px;
+  z-index: 4;
+}
+
 .runner-ground {
   background:
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 12px, transparent 12px 24px),
-    linear-gradient(180deg, #4f9b35 0 12px, #8a5124 12px 100%);
+    linear-gradient(180deg, #4f9b35 0 10px, #6f461f 10px 16px, #8a5124 16px 100%);
   height: 42px;
   inset: auto 0 0;
   z-index: 5;
 }
 
 .runner-ground::after {
-  animation: runnerGround 1.2s linear infinite;
+  animation: runnerGround 1.45s linear infinite;
   background:
     linear-gradient(90deg, transparent 0 18px, #5b3518 18px 23px, transparent 23px 52px),
     linear-gradient(90deg, transparent 0 6px, #9dcc70 6px 11px, transparent 11px 38px);
@@ -2541,6 +2576,8 @@ strong {
 }
 
 .runner-track {
+  contain: layout paint;
+  isolation: isolate;
   overflow: hidden;
   z-index: 6;
 }
@@ -3123,6 +3160,7 @@ strong {
   background-image: url("../img/runner-sprites.png");
   background-position: var(--sprite-x, 0) var(--sprite-y, 0);
   background-repeat: no-repeat;
+  backface-visibility: hidden;
   image-rendering: pixelated;
 }
 
@@ -3164,6 +3202,7 @@ strong {
   overflow: visible;
   position: absolute;
   transform-origin: bottom center;
+  will-change: transform;
   width: 82px;
   z-index: 10;
 }
@@ -3180,6 +3219,8 @@ strong {
   clip-path: none;
   filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.4));
   overflow: visible;
+  transform-origin: bottom center;
+  will-change: transform;
 }
 
 .runner-actions {
@@ -3458,7 +3499,9 @@ strong {
   }
 
   .modal-box-runner {
+    max-height: min(96vh, 900px);
     padding: 1.35rem 1rem 1rem;
+    width: min(98vw, 980px);
   }
 
   .modal-box-runner .modal-sub {
@@ -3497,6 +3540,11 @@ strong {
     font-size: 1.1rem;
   }
 
+  .runner-stat small {
+    font-size: 0.5rem;
+    letter-spacing: 0.07em;
+  }
+
   .runner-power {
     gap: 0.45rem;
     grid-template-columns: 1fr 52px;
@@ -3507,7 +3555,10 @@ strong {
   }
 
   .runner-stage {
-    height: 212px;
+    --runner-entity-scale: 1.22;
+    --runner-player-scale: 1.14;
+    border-width: 3px;
+    height: clamp(248px, 64vw, 292px);
   }
 
   .runner-cloud-b,
@@ -3515,8 +3566,24 @@ strong {
     display: none;
   }
 
+  .runner-hills {
+    height: 156px;
+  }
+
+  .runner-forest {
+    height: 92px;
+  }
+
+  .runner-trail {
+    height: 68px;
+  }
+
   .runner-player {
-    left: 46px;
+    left: 36px;
+  }
+
+  .runner-entity {
+    filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.42));
   }
 
   .runner-actions {
