@@ -753,6 +753,7 @@ function initGames() {
 function renderQuiz(state) {
   const target = document.getElementById(state.target);
   if (!target) return;
+  lockGameGestures(target);
   target.replaceChildren();
 
   const current = state.data[state.index];
@@ -842,6 +843,7 @@ function buildWordSearch() {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const target = document.getElementById("wordContent");
   if (!target) return;
+  lockGameGestures(target);
 
   for (let row = 0; row < size; row += 1) {
     wordGrid[row] = [];
@@ -1034,6 +1036,7 @@ function saveCampRanking(entries) {
 function renderCampGame() {
   const target = document.getElementById("campContent");
   if (!target) return;
+  lockGameGestures(target);
 
   target.replaceChildren(
     el("div", { class: "camp-game" }, [
@@ -1426,8 +1429,7 @@ function renderRunnerGame() {
   const target = document.getElementById("runnerContent");
   if (!target) return;
   stopRunnerGame();
-  target.addEventListener("contextmenu", preventRunnerSelection);
-  target.addEventListener("selectstart", preventRunnerSelection);
+  lockGameGestures(target);
 
   const chooser = el("div", { class: "runner-chooser", role: "group", "aria-label": "Escolha o personagem" });
   runnerCharacters.forEach((character) => {
@@ -1568,8 +1570,21 @@ function stopRunnerGame() {
   runnerState.raf = 0;
 }
 
+function lockGameGestures(target) {
+  target.addEventListener("contextmenu", preventRunnerSelection);
+  target.addEventListener("selectstart", preventRunnerSelection);
+  target.addEventListener("gesturestart", preventRunnerSelection);
+  target.addEventListener("gesturechange", preventRunnerSelection);
+  target.addEventListener("touchmove", preventGamePinch, { passive: false });
+}
+
 function preventRunnerSelection(event) {
+  if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
   event.preventDefault();
+}
+
+function preventGamePinch(event) {
+  if (event.touches && event.touches.length > 1) event.preventDefault();
 }
 
 function beginRunnerJump(event) {
@@ -1922,8 +1937,7 @@ function savePackRecord(record) {
 function renderPackGame() {
   const target = document.getElementById("packContent");
   if (!target) return;
-  target.addEventListener("contextmenu", preventRunnerSelection);
-  target.addEventListener("selectstart", preventRunnerSelection);
+  lockGameGestures(target);
 
   target.replaceChildren(
     el("div", { class: "pack-game" }, [

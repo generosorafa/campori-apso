@@ -1782,25 +1782,42 @@ strong {
 }
 
 .modal-box-runner {
-  -webkit-touch-callout: none;
   max-height: min(94vh, 840px);
   max-width: 980px;
   width: min(96vw, 980px);
 }
 
 .modal-box-pack {
-  -webkit-touch-callout: none;
   max-height: min(94vh, 900px);
   max-width: 1080px;
   width: min(96vw, 1080px);
 }
 
+#quizModal .modal-box,
+#wordModal .modal-box,
+.modal-box-camp,
 .modal-box-runner,
-.modal-box-runner *,
+#triviaModal .modal-box,
 .modal-box-pack,
+#quizModal .modal-box *,
+#wordModal .modal-box *,
+.modal-box-camp *,
+.modal-box-runner *,
+#triviaModal .modal-box *,
 .modal-box-pack * {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+#quizModal .modal-box,
+#wordModal .modal-box,
+.modal-box-camp,
+.modal-box-runner,
+#triviaModal .modal-box,
+.modal-box-pack {
+  overscroll-behavior: contain;
 }
 
 .modal-close {
@@ -1970,6 +1987,7 @@ strong {
 
 .word-grid-wrap {
   max-width: 100%;
+  overscroll-behavior: contain;
   overflow-x: auto;
   padding-bottom: 0.35rem;
 }
@@ -2354,6 +2372,10 @@ strong {
   color: var(--text-light);
   min-height: 44px;
   padding: 0 0.85rem;
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  touch-action: auto;
+  user-select: text;
   width: 100%;
 }
 
@@ -2418,6 +2440,7 @@ strong {
   box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.32);
   justify-self: center;
   max-width: 100%;
+  overscroll-behavior: contain;
   overflow-x: auto;
   padding: 0.55rem;
   width: max-content;
@@ -2428,6 +2451,7 @@ strong {
   display: grid;
   gap: 5px;
   grid-template-columns: repeat(7, var(--camp-cell));
+  touch-action: manipulation;
   width: max-content;
 }
 
@@ -2447,6 +2471,7 @@ strong {
   min-width: var(--camp-cell);
   overflow: hidden;
   padding: 0.18rem;
+  touch-action: manipulation;
 }
 
 .camp-cell:hover,
@@ -3490,6 +3515,27 @@ strong {
 .runner-character,
 .runner-stage {
   -webkit-tap-highlight-color: transparent;
+}
+
+.quiz-opt,
+.quiz-nav .btn,
+.word-toolbar .btn,
+.ws-cell,
+.camp-item,
+.camp-cell,
+.runner-actions .btn,
+.runner-character,
+.pack-actions .btn,
+.pack-cell {
+  touch-action: manipulation;
+}
+
+.camp-item,
+.camp-cell,
+.runner-stage,
+.pack-cell,
+.ws-cell {
+  -webkit-user-drag: none;
 }
 
 .runner-message {
